@@ -35,6 +35,7 @@ const PLIC_CTRL_ADDR:   u32 = 0x0C000000;
 const PLIC_PRIO_OFF:    u32 = 0x0000;
 const PLIC_PENDING_OFF: u32 = 0x1000;
 const PLIC_ENABLE_OFF:  u32 = 0x2000;
+const PLIC_CONTEXT_OFF: u32 = 0x200000;
 
 // TODO
 const MCAUSE_IRQ_MASK: u32 = 31;
@@ -46,6 +47,11 @@ export fn lvl1_handler() void {
     if ((mcause >> MCAUSE_IRQ_MASK) != 1)
         return; // not an interrupt
 
+    const claim_reg = @intToPtr(*volatile u32, PLIC_CTRL_ADDR + PLIC_CONTEXT_OFF + @sizeOf(u32));
+    const irq = claim_reg.*;
+    if (irq != UART0_IRQ)
+        return; // not our IRQ
+
     const uart0tx = @intToPtr(*volatile u32, UART0_CTRL_ADDR + UART_REG_TXFIFO);
     uart0tx.* = 'H';
     uart0tx.* = 'e';
@@ -54,6 +60,9 @@ export fn lvl1_handler() void {
     uart0tx.* = 'o';
     uart0tx.* = '!';
     uart0tx.* = '\n';
+
+    // Mark interrupt as completed
+    claim_reg.* = irq;
 }
 
 export fn myinit() void {
