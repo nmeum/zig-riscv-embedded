@@ -12,5 +12,12 @@ const UART_REG_IP     : u32 = 0x14;
 const UART_REG_DIV    : u32 = 0x18;
 
 export fn myinit() void {
-  asm volatile ("addi t0, t0, 23");
+    const uart0tx = @intToPtr(*volatile u32, UART0_CTRL_ADDR + UART_REG_TXFIFO);
+    uart0tx.* = 'H';
+    uart0tx.* = 'e';
+    uart0tx.* = 'l';
+    uart0tx.* = 'l';
+    uart0tx.* = 'o';
+    uart0tx.* = '!';
+    uart0tx.* = '\n';
 }
