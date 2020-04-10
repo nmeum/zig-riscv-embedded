@@ -26,6 +26,10 @@ const UART_REG_IE     : u32 = 0x10;
 const UART_REG_IP     : u32 = 0x14;
 const UART_REG_DIV    : u32 = 0x18;
 
+export fn lvl1_handler() void {
+    // TODO
+}
+
 export fn myinit() void {
     const uart0tx = @intToPtr(*volatile u32, UART0_CTRL_ADDR + UART_REG_TXFIFO);
     uart0tx.* = 'H';
