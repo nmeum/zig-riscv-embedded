@@ -24,19 +24,6 @@
 .globl register_handler
 .globl lvl0_handler
 
-register_handler:
-    # Use lvl0_handler as the trap handler
-    la t0, lvl0_handler
-    csrw mtvec, t0
-
-    # Enable machine external interrupts (MIE bit)
-    li t1, 0x800
-    csrw mie, t1
-
-    # Globally enable machine mode interrupts (MIE bit)
-    li t1, 0x8
-    csrw mstatus, t1
-
 lvl0_handler:
     addi sp, sp, -4 * 32
     sw x1, 0x0(sp)
@@ -78,3 +65,19 @@ lvl0_handler:
     lw x31, 30 * 4(sp)
     addi sp, sp, 4 * 32
     mret
+
+register_handler:
+    # Use lvl0_handler as the trap handler
+    la t0, lvl0_handler
+    csrw mtvec, t0
+
+    # Enable machine external interrupts (MIE bit)
+    li t1, 0x800
+    csrw mie, t1
+
+    # Globally enable machine mode interrupts (MIE bit)
+    li t1, 0x8
+    csrw mstatus, t1
+
+    # Return
+    ret
