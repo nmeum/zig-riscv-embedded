@@ -8,11 +8,11 @@ This repository is intended to provide a simple sample application for
 experimenting with the zig programming language on freestanding RISCV.
 The application targets the [SiFive FE310-G000][fe310 manual] or more
 specifically the [HiFive 1][hifive1 website]. While possible to run the
-application on "real hardware" it can also be run using an emulator.
+application on "real hardware", it can also be run using an emulator.
 
-The application uses slightly linker scripts and assembler startup code
-copied from the [RIOT project][riot fe310]. Refer to the license headers
-of the different files for more information.
+The application uses slightly modified linker scripts and assembler
+startup code copied from the [RIOT project][riot fe310]. Refer to the
+license headers of the different files for more information.
 
 ## Building
 
@@ -27,7 +27,7 @@ After invoking `./build.sh` the generated ELF binary can be booted using
 `hifive-vp` from [riscv-vp][riscv-vp GitHub]. Alternatively, the
 [qemu][qemu website] `sifive_e` machine should also work.
 
-Using `hifive-vp`:
+Using riscv-vp:
 
 	$ hifive-vp main
 
