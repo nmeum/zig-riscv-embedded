@@ -13,6 +13,8 @@
 // You should have received a copy of the GNU General Public License along
 // with this program. If not, see <http://www.gnu.org/licenses/>.
 
+const UART = @import("uart.zig").UART;
+
 // UART control base addresses.
 const UART0_CTRL_ADDR: u32 = 0x10013000;
 const UART1_CTRL_ADDR: u32 = 0x10023000;
@@ -20,15 +22,6 @@ const UART1_CTRL_ADDR: u32 = 0x10023000;
 // TODO
 const UART0_IRQ = 3;
 const UART1_IRQ = 4;
-
-// Offsets for memory mapped UART control registers.
-const UART_REG_TXFIFO : u32 = 0x00;
-const UART_REG_RXFIFO : u32 = 0x04;
-const UART_REG_TXCTRL : u32 = 0x08;
-const UART_REG_RXCTRL : u32 = 0x0c;
-const UART_REG_IE     : u32 = 0x10;
-const UART_REG_IP     : u32 = 0x14;
-const UART_REG_DIV    : u32 = 0x18;
 
 // TODO
 const PLIC_CTRL_ADDR:   u32 = 0x0C000000;
@@ -39,6 +32,12 @@ const PLIC_CONTEXT_OFF: u32 = 0x200000;
 
 // TODO
 const MCAUSE_IRQ_MASK: u32 = 31;
+
+// TODO
+var uart1: UART = UART {
+    .base_addr = UART0_CTRL_ADDR,
+    .irq = UART0_IRQ,
+};
 
 export fn lvl1_handler() void {
     const mcause =asm ("csrr %[ret], mcause"
@@ -52,14 +51,14 @@ export fn lvl1_handler() void {
     if (irq != UART0_IRQ)
         return; // not our IRQ
 
-    const uart0tx = @intToPtr(*volatile u32, UART0_CTRL_ADDR + UART_REG_TXFIFO);
-    uart0tx.* = 'H';
-    uart0tx.* = 'e';
-    uart0tx.* = 'l';
-    uart0tx.* = 'l';
-    uart0tx.* = 'o';
-    uart0tx.* = '!';
-    uart0tx.* = '\n';
+    uart1.write_byte('H');
+    uart1.write_byte('e');
+    uart1.write_byte('l');
+    uart1.write_byte('l');
+    uart1.write_byte('l');
+    uart1.write_byte('o');
+    uart1.write_byte('!');
+    uart1.write_byte('\n');
 
     // Mark interrupt as completed
     claim_reg.* = irq;
@@ -79,13 +78,7 @@ export fn myinit() void {
     const plic_enable = @intToPtr(*volatile u32, PLIC_CTRL_ADDR + PLIC_ENABLE_OFF);
     plic_enable.* = 1 << UART0_IRQ;
 
-    // Set UART watermark
-    const uart_txctrl = @intToPtr(*volatile u32, UART0_CTRL_ADDR + UART_REG_TXCTRL);
-    uart_txctrl.* = (1 << 16);
-
-    // Enable UART TX interrupt
-    const uart_ie = @intToPtr(*volatile u32, UART0_CTRL_ADDR + UART_REG_IE);
-    uart_ie.* = (1 << 0);
+    uart1.configure();
 
     return;
 }
