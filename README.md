@@ -38,6 +38,9 @@ Using qemu:
 
 	$ qemu-system-riscv32 -M sifive_e -nographic -kernel zig-cache/bin/main
 
+The application should also boot successfully on the hifive1, though I
+haven't gotten around to testing it yet.
+
 [zig website]: https://ziglang.org/
 [riscv-vp GitHub]: https://github.com/agra-uni-bremen/riscv-vp
 [qemu website]: https://www.qemu.org/
