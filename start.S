@@ -5,9 +5,10 @@
  * General Public License v2.1. See the file LICENSE in the top level
  * directory for more details.
  */
-    .section .init
-    .globl _start
-    .type _start,@function
+
+.section .init
+.globl _start
+.type _start,@function
 
 _start:
     .cfi_startproc
@@ -41,8 +42,7 @@ _start:
     addi a0, a0, 4
     bltu a0, a1, 1b
 2:
-    addi t0, t0, 23
-
+    call register_handler
     call myinit
 
     /* Loop forever (should never get here) */
