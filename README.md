@@ -22,7 +22,7 @@ available in `build.zig`. To build the application run:
 
 	$ zig build
 
-This will create the binary in `zig-cache/bin/main`.
+This will create a freestanding RISC-V ELF binary `zig-cache/bin/main`.
 
 ## Booting
 
