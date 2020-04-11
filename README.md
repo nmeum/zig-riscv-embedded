@@ -1,6 +1,6 @@
 # zig-riscv-embedded
 
-Toy project for playing around with [zig][zig website] on freestanding RISCV.
+Toy project using [zig][zig website] on the [hifive1][hifive1 website] RISC-V board.
 
 ## Status
 
