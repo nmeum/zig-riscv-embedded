@@ -54,10 +54,7 @@ export fn level1IRQHandler() void {
 }
 
 export fn myinit() void {
-    // // Set PLIC threshold
-    // const plic_thres = @intToPtr(*volatile u32, PLIC_CTRL_ADDR + PLIC_CONTEXT_OFF);
-    // plic_thres.* = 0;
-
+    plic1.set_threshold(0);
     // TODO: Trigger a panic on error
     plic1.register_handler(UART0_IRQ, uart_irq) catch return;
 
