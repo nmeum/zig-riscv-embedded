@@ -5,7 +5,7 @@ Toy project using [zig][zig website] on the [hifive1][hifive1 website] RISC-V bo
 ## Status
 
 This repository is intended to provide a simple sample application for
-experimenting with the zig programming language on freestanding RISCV.
+experimenting with the zig programming language on freestanding RISC-V.
 The application targets the [SiFive FE310-G000][fe310 manual] or more
 specifically the [HiFive 1][hifive1 website]. While possible to run the
 application on "real hardware", it can also be run using an emulator.
