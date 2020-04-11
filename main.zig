@@ -28,7 +28,9 @@ const UART1_IRQ = 4;
 const PLIC_CTRL_ADDR: u32 = 0x0C000000;
 
 // TODO
-var plic1: Plic = Plic.init(PLIC_CTRL_ADDR);
+var plic1: Plic = Plic{
+    .base_addr = PLIC_CTRL_ADDR,
+};
 
 // TODO
 var uart1: Uart = Uart{

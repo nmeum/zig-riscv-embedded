@@ -13,8 +13,6 @@
 // You should have received a copy of the GNU General Public License along
 // with this program. If not, see <http://www.gnu.org/licenses/>.
 
-const std = @import("std");
-
 // TODO
 const PLIC_CTRL_ADDR: u32 = 0x0C000000;
 const PLIC_PRIO_OFF: u32 = 0x0000;
@@ -27,24 +25,15 @@ const MCAUSE_IRQ_MASK: u32 = 31;
 const INTERRUPT_SOURCES: u32 = 52;
 
 // TODO
-var irq_handler_buffer: [@sizeOf(*u32) * INTERRUPT_SOURCES]u8 = undefined;
+var irq_handlers: [INTERRUPT_SOURCES]?(fn() void) = undefined;
 
 pub const Plic = struct {
     base_addr: u32,
-    map: std.AutoHashMap(u32, fn() void),
 
-    pub fn init(addr: u32) Plic {
-        const alloc = &std.heap.FixedBufferAllocator
-            .init(&irq_handler_buffer).allocator;
-
-        return Plic{
-            .base_addr = addr,
-            .map = std.AutoHashMap(u32, fn() void).init(alloc),
-        };
-    }
-
-    pub fn register_handler(self: *Plic, irq: u32, handler: fn() void) !void {
-        _ = try self.map.put(irq, handler);
+    pub fn register_handler(self: Plic, irq: u32, handler: fn() void) !void {
+        if (irq >= irq_handlers.len)
+            return; // TODO: return an error
+        irq_handlers[irq] = handler;
 
         // Set PLIC priority for IRQ
         const plic_prio = @intToPtr(*volatile u32, PLIC_CTRL_ADDR +
@@ -70,8 +59,8 @@ pub const Plic = struct {
         const claim_reg = @intToPtr(*volatile u32, PLIC_CTRL_ADDR + PLIC_CONTEXT_OFF + @sizeOf(u32));
         const irq = claim_reg.*;
 
-        if (self.map.get(irq)) |kv|
-            kv.value();
+        if (irq_handlers[irq]) |handler|
+            handler();
 
         // Mark interrupt as completed
         claim_reg.* = irq;
