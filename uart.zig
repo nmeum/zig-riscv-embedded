@@ -1,11 +1,11 @@
 // Offsets for memory mapped UART control registers.
-const UART_REG_TXFIFO : u32 = 0x00;
-const UART_REG_RXFIFO : u32 = 0x04;
-const UART_REG_TXCTRL : u32 = 0x08;
-const UART_REG_RXCTRL : u32 = 0x0c;
-const UART_REG_IE     : u32 = 0x10;
-const UART_REG_IP     : u32 = 0x14;
-const UART_REG_DIV    : u32 = 0x18;
+const UART_REG_TXFIFO: u32 = 0x00;
+const UART_REG_RXFIFO: u32 = 0x04;
+const UART_REG_TXCTRL: u32 = 0x08;
+const UART_REG_RXCTRL: u32 = 0x0c;
+const UART_REG_IE: u32 = 0x10;
+const UART_REG_IP: u32 = 0x14;
+const UART_REG_DIV: u32 = 0x18;
 
 // To-do
 const UART_TX_WATERMARK: u32 = 1;
@@ -16,24 +16,24 @@ pub const UART = struct {
     irq: u32,
 
     pub const txctrl = packed struct {
-        txen:  bool,
+        txen: bool,
         nstop: u1,
-        _:     u14 = 0, // reserved
+        _: u14 = 0, // reserved
         txcnt: u3,
-        __:    u13 = 0, // reserved
+        __: u13 = 0, // reserved
     };
 
     pub const rxctrl = packed struct {
-        rxen:  bool,
-        _:     u15 = 0, // reserved
+        rxen: bool,
+        _: u15 = 0, // reserved
         rxcnt: u3,
-        __:    u13 = 0, // reserved
+        __: u13 = 0, // reserved
     };
 
     pub const ie = packed struct {
         txwm: bool,
         rxwm: bool,
-        _:    u30 = 0, // reserved
+        _: u30 = 0, // reserved
     };
 
     fn write_word(self: UART, offset: u32, value: u32) void {

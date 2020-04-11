@@ -24,24 +24,25 @@ const UART0_IRQ = 3;
 const UART1_IRQ = 4;
 
 // TODO
-const PLIC_CTRL_ADDR:   u32 = 0x0C000000;
-const PLIC_PRIO_OFF:    u32 = 0x0000;
+const PLIC_CTRL_ADDR: u32 = 0x0C000000;
+const PLIC_PRIO_OFF: u32 = 0x0000;
 const PLIC_PENDING_OFF: u32 = 0x1000;
-const PLIC_ENABLE_OFF:  u32 = 0x2000;
+const PLIC_ENABLE_OFF: u32 = 0x2000;
 const PLIC_CONTEXT_OFF: u32 = 0x200000;
 
 // TODO
 const MCAUSE_IRQ_MASK: u32 = 31;
 
 // TODO
-var uart1: UART = UART {
+var uart1: UART = UART{
     .base_addr = UART0_CTRL_ADDR,
     .irq = UART0_IRQ,
 };
 
 export fn lvl1_handler() void {
-    const mcause =asm ("csrr %[ret], mcause"
-        : [ret] "=r" (-> u32));
+    const mcause = asm ("csrr %[ret], mcause"
+        : [ret] "=r" (-> u32)
+    );
 
     if ((mcause >> MCAUSE_IRQ_MASK) != 1)
         return; // not an interrupt
@@ -78,12 +79,12 @@ export fn myinit() void {
     const plic_enable = @intToPtr(*volatile u32, PLIC_CTRL_ADDR + PLIC_ENABLE_OFF);
     plic_enable.* = 1 << UART0_IRQ;
 
-    uart1.writeTxctrl(UART.txctrl {
-        .txen  = true,
+    uart1.writeTxctrl(UART.txctrl{
+        .txen = true,
         .nstop = 0,
         .txcnt = 1,
     });
-    uart1.writeIe(UART.ie {
+    uart1.writeIe(UART.ie{
         .txwm = true,
         .rxwm = false,
     });
