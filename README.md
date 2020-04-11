@@ -10,6 +10,11 @@ The application targets the [SiFive FE310-G000][fe310 manual] or more
 specifically the [HiFive 1][hifive1 website]. While possible to run the
 application on "real hardware", it can also be run using an emulator.
 
+The mid-term goal is to provide somewhat usable abstractions for
+interacting with the UART and the PLIC. These abstractions are currently
+being developed in `uart.zig` and `plic.zig`. The `main.zig` file
+combines the two to output `Hello!` indefinitely.
+
 The application uses slightly modified linker scripts and assembler
 startup code copied from the [RIOT project][riot fe310]. Refer to the
 license headers of the different files for more information.
