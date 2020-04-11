@@ -16,10 +16,13 @@ license headers of the different files for more information.
 
 ## Building
 
-Builds successfully with zig `0.5.0+5990929247`, since I am unable to
-recall the commands necessary to build the entire thing I encapsulate
-them in `build.sh`. Simply invoke this shell script to build an ELF
-image.
+The code builds successfully with zig `0.5.0+5990929247`. The zig build
+system is used for building the application, the configuration is
+available in `build.zig`. To build the application run:
+
+	$ zig build
+
+This will create the binary in `zig-cache/bin/main`.
 
 ## Booting
 
@@ -29,11 +32,11 @@ After invoking `./build.sh` the generated ELF binary can be booted using
 
 Using riscv-vp:
 
-	$ hifive-vp main
+	$ hifive-vp zig-cache/bin/main
 
 Using qemu:
 
-	$ qemu-system-riscv32 -M sifive_e -nographic -kernel main
+	$ qemu-system-riscv32 -M sifive_e -nographic -kernel zig-cache/bin/main
 
 [zig website]: https://ziglang.org/
 [riscv-vp GitHub]: https://github.com/agra-uni-bremen/riscv-vp
