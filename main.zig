@@ -78,7 +78,15 @@ export fn myinit() void {
     const plic_enable = @intToPtr(*volatile u32, PLIC_CTRL_ADDR + PLIC_ENABLE_OFF);
     plic_enable.* = 1 << UART0_IRQ;
 
-    uart1.configure();
+    uart1.writeTxctrl(UART.txctrl {
+        .txen  = true,
+        .nstop = 0,
+        .txcnt = 1,
+    });
+    uart1.writeIe(UART.ie {
+        .txwm = true,
+        .rxwm = false,
+    });
 
     return;
 }

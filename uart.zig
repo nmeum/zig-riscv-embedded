@@ -15,18 +15,45 @@ pub const UART = struct {
     base_addr: u32,
     irq: u32,
 
+    pub const txctrl = packed struct {
+        txen:  bool,
+        nstop: u1,
+        _:     u14 = 0, // reserved
+        txcnt: u3,
+        __:    u13 = 0, // reserved
+    };
+
+    pub const rxctrl = packed struct {
+        rxen:  bool,
+        _:     u15 = 0, // reserved
+        rxcnt: u3,
+        __:    u13 = 0, // reserved
+    };
+
+    pub const ie = packed struct {
+        txwm: bool,
+        rxwm: bool,
+        _:    u30 = 0, // reserved
+    };
+
     fn write_word(self: UART, offset: u32, value: u32) void {
         const ptr = @intToPtr(*volatile u32, self.base_addr + offset);
         ptr.* = value;
     }
 
-    pub fn configure(self: UART) void {
-        // Set TX and RX watermarks
-        self.write_word(UART_REG_TXCTRL, (UART_TX_WATERMARK << 16));
-        self.write_word(UART_REG_RXCTRL, (UART_RX_WATERMARK << 16));
+    pub fn writeTxctrl(self: UART, ctrl: txctrl) void {
+        var serialized = @bitCast(u32, ctrl);
+        self.write_word(UART_REG_TXCTRL, serialized);
+    }
 
-        // Enable TX and disable RX interrupt
-        self.write_word(UART_REG_IE, (1 << 0));
+    pub fn writeRxctrl(self: UART, ctrl: rxctrl) void {
+        var serialized = @bitCast(u32, ctrl);
+        self.write_word(UART_REG_RXCTRL, serialized);
+    }
+
+    pub fn writeIe(self: UART, val: ie) void {
+        var serialized = @bitCast(u32, val);
+        self.write_word(UART_REG_IE, serialized);
     }
 
     pub fn write_byte(self: UART, value: u8) void {
