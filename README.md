@@ -26,9 +26,9 @@ This will create a freestanding RISC-V ELF binary `zig-cache/bin/main`.
 
 ## Booting
 
-After invoking `./build.sh` the generated ELF binary can be booted using
-`hifive-vp` from [riscv-vp][riscv-vp GitHub]. Alternatively, the
-[qemu][qemu website] `sifive_e` machine should also work.
+The generated ELF binary can be booted using `hifive-vp` from
+[riscv-vp][riscv-vp GitHub]. Alternatively, the [qemu][qemu website]
+`sifive_e` machine also works.
 
 Using riscv-vp:
 
