@@ -71,6 +71,10 @@ export fn myinit() void {
         PLIC_PRIO_OFF + (UART0_IRQ * @sizeOf(u32)));
     plic_prio.* = 1;
 
+    // Set PLIC threshold
+    const plic_thres = @intToPtr(*volatile u32, PLIC_CTRL_ADDR + PLIC_CONTEXT_OFF);
+    plic_thres.* = 0;
+
     // Enable interrupts for UART interrupt
     const plic_enable = @intToPtr(*volatile u32, PLIC_CTRL_ADDR + PLIC_ENABLE_OFF);
     plic_enable.* = 1 << UART0_IRQ;
