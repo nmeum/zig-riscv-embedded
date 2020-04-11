@@ -37,7 +37,7 @@ pub const Plic = struct {
 
     pub fn register_handler(self: Plic, irq: u32, handler: fn() void) !void {
         if (irq >= irq_handlers.len)
-            return; // TODO: return an error
+            return error.OutOfBounds;
         irq_handlers[irq] = handler;
 
         // Set PLIC priority for IRQ
