@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU General Public License along
 // with this program. If not, see <http://www.gnu.org/licenses/>.
 
+const Plic = @import("plic.zig").Plic;
 const Uart = @import("uart.zig").Uart;
 
 // UART control base addresses.
@@ -25,13 +26,9 @@ const UART1_IRQ = 4;
 
 // TODO
 const PLIC_CTRL_ADDR: u32 = 0x0C000000;
-const PLIC_PRIO_OFF: u32 = 0x0000;
-const PLIC_PENDING_OFF: u32 = 0x1000;
-const PLIC_ENABLE_OFF: u32 = 0x2000;
-const PLIC_CONTEXT_OFF: u32 = 0x200000;
 
 // TODO
-const MCAUSE_IRQ_MASK: u32 = 31;
+var plic1: Plic = Plic.init(PLIC_CTRL_ADDR);
 
 // TODO
 var uart1: Uart = Uart{
@@ -39,19 +36,7 @@ var uart1: Uart = Uart{
     .irq = UART0_IRQ,
 };
 
-export fn level1IRQHandler() void {
-    const mcause = asm ("csrr %[ret], mcause"
-        : [ret] "=r" (-> u32)
-    );
-
-    if ((mcause >> MCAUSE_IRQ_MASK) != 1)
-        return; // not an interrupt
-
-    const claim_reg = @intToPtr(*volatile u32, PLIC_CTRL_ADDR + PLIC_CONTEXT_OFF + @sizeOf(u32));
-    const irq = claim_reg.*;
-    if (irq != UART0_IRQ)
-        return; // not our IRQ
-
+pub fn uart_irq() void {
     uart1.write_byte('H');
     uart1.write_byte('e');
     uart1.write_byte('l');
@@ -60,24 +45,19 @@ export fn level1IRQHandler() void {
     uart1.write_byte('o');
     uart1.write_byte('!');
     uart1.write_byte('\n');
+}
 
-    // Mark interrupt as completed
-    claim_reg.* = irq;
+export fn level1IRQHandler() void {
+    plic1.invoke_handler();
 }
 
 export fn myinit() void {
-    // Set PLIC priority for UART interrupt
-    const plic_prio = @intToPtr(*volatile u32, PLIC_CTRL_ADDR +
-        PLIC_PRIO_OFF + (UART0_IRQ * @sizeOf(u32)));
-    plic_prio.* = 1;
+    // // Set PLIC threshold
+    // const plic_thres = @intToPtr(*volatile u32, PLIC_CTRL_ADDR + PLIC_CONTEXT_OFF);
+    // plic_thres.* = 0;
 
-    // Set PLIC threshold
-    const plic_thres = @intToPtr(*volatile u32, PLIC_CTRL_ADDR + PLIC_CONTEXT_OFF);
-    plic_thres.* = 0;
-
-    // Enable interrupts for UART interrupt
-    const plic_enable = @intToPtr(*volatile u32, PLIC_CTRL_ADDR + PLIC_ENABLE_OFF);
-    plic_enable.* = 1 << UART0_IRQ;
+    // TODO: Trigger a panic on error
+    plic1.register_handler(UART0_IRQ, uart_irq) catch return;
 
     uart1.writeTxctrl(Uart.txctrl{
         .txen = true,
