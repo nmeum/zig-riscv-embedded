@@ -25,7 +25,7 @@ const MCAUSE_IRQ_MASK: u32 = 31;
 const INTERRUPT_SOURCES: u32 = 52;
 
 // TODO
-var irq_handlers: [INTERRUPT_SOURCES]?(fn() void) = undefined;
+var irq_handlers: [INTERRUPT_SOURCES]?(fn () void) = undefined;
 
 pub const Plic = struct {
     base_addr: u32,
@@ -35,7 +35,7 @@ pub const Plic = struct {
         plic_thres.* = threshold;
     }
 
-    pub fn register_handler(self: Plic, irq: u32, handler: fn() void) !void {
+    pub fn register_handler(self: Plic, irq: u32, handler: fn () void) !void {
         if (irq >= irq_handlers.len)
             return error.OutOfBounds;
         irq_handlers[irq] = handler;
