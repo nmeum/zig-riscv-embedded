@@ -15,10 +15,6 @@ interacting with the UART and the PLIC. These abstractions are currently
 being developed in `uart.zig` and `plic.zig`. The `main.zig` file
 combines the two to output `Hello!` indefinitely.
 
-The application uses slightly modified linker scripts and assembler
-startup code copied from the [RIOT project][riot fe310]. Refer to the
-license headers of the different files for more information.
-
 ## Building
 
 The code builds successfully with zig `0.5.0+5990929247`. The zig build
@@ -45,6 +41,14 @@ Using qemu:
 
 The application should also boot successfully on the hifive1, though I
 haven't gotten around to testing it yet.
+
+## License
+
+The application uses slightly modified linker scripts and assembler
+startup code copied from the [RIOT][riot fe310] operating system. Unless
+otherwise noted code written by myself is licensed under
+`GPL-3.0-or-later`. Refer to the license headers of the different files
+for more information.
 
 [zig website]: https://ziglang.org/
 [riscv-vp GitHub]: https://github.com/agra-uni-bremen/riscv-vp
