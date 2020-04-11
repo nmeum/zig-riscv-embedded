@@ -1,11 +1,11 @@
 # zig-riscv-embedded
 
-Toy project using [zig][zig website] on the [hifive1][hifive1 website] RISC-V board.
+Toy project using [Zig][zig website] on the [HiFive1][hifive1 website] RISC-V board.
 
 ## Status
 
 This repository is intended to provide a simple sample application for
-experimenting with the zig programming language on freestanding RISC-V.
+experimenting with the Zig programming language on freestanding RISC-V.
 The application targets the [SiFive FE310-G000][fe310 manual] or more
 specifically the [HiFive 1][hifive1 website]. While possible to run the
 application on "real hardware", it can also be run using an emulator.
@@ -17,7 +17,7 @@ combines the two to output `Hello!` indefinitely.
 
 ## Building
 
-The code builds successfully with zig `0.5.0+5990929247`. The zig build
+The code builds successfully with Zig `0.5.0+5990929247`. The Zig build
 system is used for building the application, the configuration is
 available in `build.zig`. To build the application run:
 
@@ -39,7 +39,7 @@ Using qemu:
 
 	$ qemu-system-riscv32 -M sifive_e -nographic -kernel zig-cache/bin/main
 
-The application should also boot successfully on the hifive1, though I
+The application should also boot successfully on the HiFive1, though I
 haven't gotten around to testing it yet.
 
 ## License
