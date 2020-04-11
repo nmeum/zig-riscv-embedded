@@ -11,7 +11,7 @@ const UART_REG_DIV: u32 = 0x18;
 const UART_TX_WATERMARK: u32 = 1;
 const UART_RX_WATERMARK: u32 = 1;
 
-pub const UART = struct {
+pub const Uart = struct {
     base_addr: u32,
     irq: u32,
 
@@ -36,27 +36,27 @@ pub const UART = struct {
         _: u30 = 0, // reserved
     };
 
-    fn write_word(self: UART, offset: u32, value: u32) void {
+    fn writeWord(self: Uart, offset: u32, value: u32) void {
         const ptr = @intToPtr(*volatile u32, self.base_addr + offset);
         ptr.* = value;
     }
 
-    pub fn writeTxctrl(self: UART, ctrl: txctrl) void {
+    pub fn writeTxctrl(self: Uart, ctrl: txctrl) void {
         var serialized = @bitCast(u32, ctrl);
-        self.write_word(UART_REG_TXCTRL, serialized);
+        self.writeWord(UART_REG_TXCTRL, serialized);
     }
 
-    pub fn writeRxctrl(self: UART, ctrl: rxctrl) void {
+    pub fn writeRxctrl(self: Uart, ctrl: rxctrl) void {
         var serialized = @bitCast(u32, ctrl);
-        self.write_word(UART_REG_RXCTRL, serialized);
+        self.writeWord(UART_REG_RXCTRL, serialized);
     }
 
-    pub fn writeIe(self: UART, val: ie) void {
+    pub fn writeIe(self: Uart, val: ie) void {
         var serialized = @bitCast(u32, val);
-        self.write_word(UART_REG_IE, serialized);
+        self.writeWord(UART_REG_IE, serialized);
     }
 
-    pub fn write_byte(self: UART, value: u8) void {
-        self.write_word(UART_REG_TXFIFO, value);
+    pub fn write_byte(self: Uart, value: u8) void {
+        self.writeWord(UART_REG_TXFIFO, value);
     }
 };

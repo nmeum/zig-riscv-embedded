@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU General Public License along
 // with this program. If not, see <http://www.gnu.org/licenses/>.
 
-const UART = @import("uart.zig").UART;
+const Uart = @import("uart.zig").Uart;
 
 // UART control base addresses.
 const UART0_CTRL_ADDR: u32 = 0x10013000;
@@ -34,12 +34,12 @@ const PLIC_CONTEXT_OFF: u32 = 0x200000;
 const MCAUSE_IRQ_MASK: u32 = 31;
 
 // TODO
-var uart1: UART = UART{
+var uart1: Uart = Uart{
     .base_addr = UART0_CTRL_ADDR,
     .irq = UART0_IRQ,
 };
 
-export fn lvl1_handler() void {
+export fn level1IRQHandler() void {
     const mcause = asm ("csrr %[ret], mcause"
         : [ret] "=r" (-> u32)
     );
@@ -79,12 +79,12 @@ export fn myinit() void {
     const plic_enable = @intToPtr(*volatile u32, PLIC_CTRL_ADDR + PLIC_ENABLE_OFF);
     plic_enable.* = 1 << UART0_IRQ;
 
-    uart1.writeTxctrl(UART.txctrl{
+    uart1.writeTxctrl(Uart.txctrl{
         .txen = true,
         .nstop = 0,
         .txcnt = 1,
     });
-    uart1.writeIe(UART.ie{
+    uart1.writeIe(Uart.ie{
         .txwm = true,
         .rxwm = false,
     });

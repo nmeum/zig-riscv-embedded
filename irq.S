@@ -46,7 +46,7 @@ lvl0_handler:
     sw x31, 30 * 4(sp)
 
     # Jump to the level 1 trap handler written in Zig
-    jal lvl1_handler
+    jal level1IRQHandler
 
     # Set the return address to the next instruction
     csrr t0, mepc
