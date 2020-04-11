@@ -38,6 +38,12 @@ var uart1: Uart = Uart{
     .irq = UART0_IRQ,
 };
 
+pub fn abort(err: anyerror) noreturn {
+    // TODO: emit some kind of error message
+    asm volatile ("EBREAK");
+    while (true) {}
+}
+
 pub fn uart_irq() void {
     uart1.write_byte('H');
     uart1.write_byte('e');
@@ -55,8 +61,9 @@ export fn level1IRQHandler() void {
 
 export fn myinit() void {
     plic1.set_threshold(0);
-    // TODO: Trigger a panic on error
-    plic1.register_handler(UART0_IRQ, uart_irq) catch return;
+    plic1.register_handler(UART0_IRQ, uart_irq) catch |err| {
+        abort(err);
+    };
 
     uart1.writeTxctrl(Uart.txctrl{
         .txen = true,
