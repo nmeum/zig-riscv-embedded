@@ -6,18 +6,6 @@
  * directory for more details.
  */
 
-/**
- * @addtogroup      cpu_fe310
- * @{
- *
- * @file
- * @brief           Memory definitions for the SiFive FE310_G000
- *
- * @author          Ken Rabold
- *
- * @}
- */
-
 OUTPUT_ARCH( "riscv" )
 
 ENTRY( _start )
