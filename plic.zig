@@ -30,7 +30,7 @@ var irq_handlers: [INTERRUPT_SOURCES]?(fn () void) = undefined;
 pub const Plic = struct {
     base_addr: u32,
 
-    pub fn set_threshold(self: Plic, threshold: u3) void {
+    pub fn setThreshold(self: Plic, threshold: u3) void {
         const plic_thres = @intToPtr(*volatile u32, PLIC_CTRL_ADDR + PLIC_CONTEXT_OFF);
         plic_thres.* = threshold;
     }

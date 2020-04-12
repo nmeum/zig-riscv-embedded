@@ -64,7 +64,7 @@ export fn level1IRQHandler() void {
 }
 
 export fn myinit() void {
-    plic1.set_threshold(0);
+    plic1.setThreshold(0);
     plic1.register_handler(UART0_IRQ, uart_irq) catch |err| {
         abort(err);
     };
