@@ -28,7 +28,6 @@ const UART_RX_WATERMARK: u3 = 1;
 
 pub const Uart = struct {
     base_addr: usize,
-    irq: u32,
 
     pub const txctrl = packed struct {
         txen: bool,

@@ -35,7 +35,6 @@ var plic1: Plic = Plic{
 // TODO
 var uart1: Uart = Uart{
     .base_addr = UART0_CTRL_ADDR,
-    .irq = UART0_IRQ,
 };
 
 pub fn abort(err: anyerror) noreturn {
