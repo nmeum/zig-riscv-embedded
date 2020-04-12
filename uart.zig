@@ -33,22 +33,22 @@ pub const Uart = struct {
     pub const txctrl = packed struct {
         txen: bool,
         nstop: u1,
-        _: u14 = 0, // reserved
+        _: u14 = undefined, // reserved
         txcnt: u3,
-        __: u13 = 0, // reserved
+        __: u13 = undefined, // reserved
     };
 
     pub const rxctrl = packed struct {
         rxen: bool,
-        _: u15 = 0, // reserved
+        _: u15 = undefined, // reserved
         rxcnt: u3,
-        __: u13 = 0, // reserved
+        __: u13 = undefined, // reserved
     };
 
     pub const ie = packed struct {
         txwm: bool,
         rxwm: bool,
-        _: u30 = 0, // reserved
+        _: u30 = undefined, // reserved
     };
 
     fn writeWord(self: Uart, offset: u32, value: u32) void {
