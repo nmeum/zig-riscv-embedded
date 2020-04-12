@@ -27,7 +27,7 @@ const PLIC_CTRL_ADDR: usize = 0x0C000000;
 const UART0_IRQ = 3;
 const UART1_IRQ = 4;
 
-var plic1: Plic = Plic{
+const plic1: Plic = Plic{
     .base_addr = PLIC_CTRL_ADDR,
 };
 const uart1: Uart = Uart{
