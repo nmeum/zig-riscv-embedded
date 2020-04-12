@@ -24,6 +24,10 @@ available in `build.zig`. To build the application run:
 	$ zig build
 
 This will create a freestanding RISC-V ELF binary `zig-cache/bin/main`.
+If the image should be booted on real hardware, building in the
+`ReleaseSmall` [build mode][zig build modes] may be desirable:
+
+	$ zig build -Drelease-small
 
 ## Booting
 
@@ -51,6 +55,7 @@ otherwise noted code written by myself is licensed under
 for more information.
 
 [zig website]: https://ziglang.org/
+[zig build modes]: https://ziglang.org/documentation/master/#Build-Mode
 [riscv-vp GitHub]: https://github.com/agra-uni-bremen/riscv-vp
 [qemu website]: https://www.qemu.org/
 [fe310 manual]: https://static.dev.sifive.com/FE310-G000.pdf
