@@ -51,7 +51,7 @@ pub const Plic = struct {
 
         // Enable interrupts for IRQ
         const enable_addr: u32 = PLIC_CTRL_ADDR + PLIC_ENABLE_OFF;
-        const idx: u32 = irq / 32;
+        const idx = irq / 32;
         const off = @intCast(u5, irq % 32);
         const plic_enable = @intToPtr(*volatile u32, enable_addr + idx);
         plic_enable.* = @intCast(u32, 1) << off;
