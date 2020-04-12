@@ -45,6 +45,10 @@ pub fn abort(err: anyerror) noreturn {
 }
 
 pub fn uart_irq() void {
+    const ip = uart1.readIp();
+    if (!ip.txwm)
+        return; // Not a transmit interrupt
+
     uart1.write_byte('H');
     uart1.write_byte('e');
     uart1.write_byte('l');
