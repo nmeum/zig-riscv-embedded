@@ -39,8 +39,7 @@ const console: Console = Console{
 
 pub fn panic(msg: []const u8, error_return_trace: ?*StackTrace) noreturn {
     @setCold(true); // copied from the default_panic implementation
-
-    // TODO: emit some kind of error message
+    console.write(msg);
 
     asm volatile ("EBREAK");
     while (true) {}
