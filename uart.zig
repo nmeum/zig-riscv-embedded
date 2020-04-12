@@ -14,20 +14,20 @@
 // with this program. If not, see <http://www.gnu.org/licenses/>.
 
 // Offsets for memory mapped UART control registers.
-const UART_REG_TXFIFO: u32 = 0x00;
-const UART_REG_RXFIFO: u32 = 0x04;
-const UART_REG_TXCTRL: u32 = 0x08;
-const UART_REG_RXCTRL: u32 = 0x0c;
-const UART_REG_IE: u32 = 0x10;
-const UART_REG_IP: u32 = 0x14;
-const UART_REG_DIV: u32 = 0x18;
+const UART_REG_TXFIFO: usize = 0x00;
+const UART_REG_RXFIFO: usize = 0x04;
+const UART_REG_TXCTRL: usize = 0x08;
+const UART_REG_RXCTRL: usize = 0x0c;
+const UART_REG_IE: usize = 0x10;
+const UART_REG_IP: usize = 0x14;
+const UART_REG_DIV: usize = 0x18;
 
 // To-do
-const UART_TX_WATERMARK: u32 = 1;
-const UART_RX_WATERMARK: u32 = 1;
+const UART_TX_WATERMARK: u3 = 1;
+const UART_RX_WATERMARK: u3 = 1;
 
 pub const Uart = struct {
-    base_addr: u32,
+    base_addr: usize,
     irq: u32,
 
     pub const txctrl = packed struct {
@@ -51,12 +51,12 @@ pub const Uart = struct {
         _: u30 = undefined, // reserved
     };
 
-    fn writeWord(self: Uart, offset: u32, value: u32) void {
+    fn writeWord(self: Uart, offset: usize, value: u32) void {
         const ptr = @intToPtr(*volatile u32, self.base_addr + offset);
         ptr.* = value;
     }
 
-    fn readWord(self: Uart, offset: u32) u32 {
+    fn readWord(self: Uart, offset: usize) u32 {
         const ptr = @intToPtr(*u32, self.base_addr + offset);
         return ptr.*;
     }

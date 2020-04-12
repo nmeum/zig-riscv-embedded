@@ -17,15 +17,15 @@ const Plic = @import("plic.zig").Plic;
 const Uart = @import("uart.zig").Uart;
 
 // UART control base addresses.
-const UART0_CTRL_ADDR: u32 = 0x10013000;
-const UART1_CTRL_ADDR: u32 = 0x10023000;
+const UART0_CTRL_ADDR: usize = 0x10013000;
+const UART1_CTRL_ADDR: usize = 0x10023000;
 
 // TODO
 const UART0_IRQ = 3;
 const UART1_IRQ = 4;
 
 // TODO
-const PLIC_CTRL_ADDR: u32 = 0x0C000000;
+const PLIC_CTRL_ADDR: usize = 0x0C000000;
 
 // TODO
 var plic1: Plic = Plic{

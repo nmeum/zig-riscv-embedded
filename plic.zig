@@ -14,21 +14,21 @@
 // with this program. If not, see <http://www.gnu.org/licenses/>.
 
 // TODO
-const PLIC_CTRL_ADDR: u32 = 0x0C000000;
-const PLIC_PRIO_OFF: u32 = 0x0000;
-const PLIC_PENDING_OFF: u32 = 0x1000;
-const PLIC_ENABLE_OFF: u32 = 0x2000;
-const PLIC_CONTEXT_OFF: u32 = 0x200000;
+const PLIC_CTRL_ADDR: usize = 0x0C000000;
+const PLIC_PRIO_OFF: usize = 0x0000;
+const PLIC_PENDING_OFF: usize = 0x1000;
+const PLIC_ENABLE_OFF: usize = 0x2000;
+const PLIC_CONTEXT_OFF: usize = 0x200000;
 
 // TODO
 const MCAUSE_IRQ_MASK: u32 = 31;
-const INTERRUPT_SOURCES: u32 = 52;
+const INTERRUPT_SOURCES: u6 = 52;
 
 // TODO
 var irq_handlers: [INTERRUPT_SOURCES]?(fn () void) = undefined;
 
 pub const Plic = struct {
-    base_addr: u32,
+    base_addr: usize,
 
     pub fn setThreshold(self: Plic, threshold: u3) void {
         const plic_thres = @intToPtr(*volatile u32, PLIC_CTRL_ADDR + PLIC_CONTEXT_OFF);
