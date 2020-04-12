@@ -22,7 +22,6 @@ const UART_REG_IE: usize = 0x10;
 const UART_REG_IP: usize = 0x14;
 const UART_REG_DIV: usize = 0x18;
 
-// To-do
 const UART_TX_WATERMARK: u3 = 1;
 const UART_RX_WATERMARK: u3 = 1;
 

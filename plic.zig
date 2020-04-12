@@ -13,18 +13,16 @@
 // You should have received a copy of the GNU General Public License along
 // with this program. If not, see <http://www.gnu.org/licenses/>.
 
-// TODO
+// Offsets for memory mapped PLIC control registers.
 const PLIC_CTRL_ADDR: usize = 0x0C000000;
 const PLIC_PRIO_OFF: usize = 0x0000;
 const PLIC_PENDING_OFF: usize = 0x1000;
 const PLIC_ENABLE_OFF: usize = 0x2000;
 const PLIC_CONTEXT_OFF: usize = 0x200000;
 
-// TODO
 const MCAUSE_IRQ_MASK: u32 = 31;
 const INTERRUPT_SOURCES: Irq = 52;
 
-// TODO
 var irq_handlers: [INTERRUPT_SOURCES]?(fn () void) = undefined;
 
 // Type alias for IRQ values, largest possible IRQ on the FE310 is

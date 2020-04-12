@@ -17,23 +17,18 @@ const Plic = @import("plic.zig").Plic;
 const Uart = @import("uart.zig").Uart;
 const StackTrace = @import("std").builtin.StackTrace;
 
-// UART control base addresses.
+// Addresses of FE310 peripherals.
 const UART0_CTRL_ADDR: usize = 0x10013000;
 const UART1_CTRL_ADDR: usize = 0x10023000;
+const PLIC_CTRL_ADDR: usize = 0x0C000000;
 
-// TODO
+// IRQ lines used by FE310 peripherals.
 const UART0_IRQ = 3;
 const UART1_IRQ = 4;
 
-// TODO
-const PLIC_CTRL_ADDR: usize = 0x0C000000;
-
-// TODO
 var plic1: Plic = Plic{
     .base_addr = PLIC_CTRL_ADDR,
 };
-
-// TODO
 var uart1: Uart = Uart{
     .base_addr = UART0_CTRL_ADDR,
 };
