@@ -56,6 +56,11 @@ pub const Uart = struct {
         ptr.* = value;
     }
 
+    fn readWord(self: Uart, offset: u32) u32 {
+        const ptr = @intToPtr(*u32, self.base_addr + offset);
+        return ptr.*;
+    }
+
     pub fn writeTxctrl(self: Uart, ctrl: txctrl) void {
         var serialized = @bitCast(u32, ctrl);
         self.writeWord(UART_REG_TXCTRL, serialized);
@@ -64,6 +69,11 @@ pub const Uart = struct {
     pub fn writeRxctrl(self: Uart, ctrl: rxctrl) void {
         var serialized = @bitCast(u32, ctrl);
         self.writeWord(UART_REG_RXCTRL, serialized);
+    }
+
+    pub fn readIp(self: Uart) ie {
+        const ip = self.readWord(UART_REG_IP);
+        return @bitCast(ie, ip);
     }
 
     pub fn writeIe(self: Uart, val: ie) void {
