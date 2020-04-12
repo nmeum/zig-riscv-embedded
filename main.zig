@@ -15,6 +15,7 @@
 
 const Plic = @import("plic.zig").Plic;
 const Uart = @import("uart.zig").Uart;
+const StackTrace = @import("std").builtin.StackTrace;
 
 // UART control base addresses.
 const UART0_CTRL_ADDR: usize = 0x10013000;
@@ -37,8 +38,11 @@ var uart1: Uart = Uart{
     .base_addr = UART0_CTRL_ADDR,
 };
 
-pub fn abort(err: anyerror) noreturn {
+pub fn panic(msg: []const u8, error_return_trace: ?*StackTrace) noreturn {
+    @setCold(true); // copied from the default_panic implementation
+
     // TODO: emit some kind of error message
+
     asm volatile ("EBREAK");
     while (true) {}
 }
@@ -65,7 +69,8 @@ export fn level1IRQHandler() void {
 export fn myinit() void {
     plic1.setThreshold(0);
     plic1.register_handler(UART0_IRQ, uart_irq) catch |err| {
-        abort(err);
+        // TODO: emit error message
+        @panic("error encountered");
     };
 
     uart1.writeTxctrl(Uart.txctrl{
