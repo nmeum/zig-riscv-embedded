@@ -15,6 +15,7 @@
 
 const Plic = @import("plic.zig").Plic;
 const Uart = @import("uart.zig").Uart;
+const Console = @import("console.zig").Console;
 const StackTrace = @import("std").builtin.StackTrace;
 
 // Addresses of FE310 peripherals.
@@ -29,8 +30,11 @@ const UART1_IRQ = 4;
 var plic1: Plic = Plic{
     .base_addr = PLIC_CTRL_ADDR,
 };
-var uart1: Uart = Uart{
+const uart1: Uart = Uart{
     .base_addr = UART0_CTRL_ADDR,
+};
+const console: Console = Console{
+    .uart = uart1,
 };
 
 pub fn panic(msg: []const u8, error_return_trace: ?*StackTrace) noreturn {
@@ -47,14 +51,7 @@ pub fn uart_irq() void {
     if (!ip.txwm)
         return; // Not a transmit interrupt
 
-    uart1.write_byte('H');
-    uart1.write_byte('e');
-    uart1.write_byte('l');
-    uart1.write_byte('l');
-    uart1.write_byte('l');
-    uart1.write_byte('o');
-    uart1.write_byte('!');
-    uart1.write_byte('\n');
+    console.write("Hello!\n");
 }
 
 export fn level1IRQHandler() void {

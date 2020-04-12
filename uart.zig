@@ -82,4 +82,11 @@ pub const Uart = struct {
     pub fn write_byte(self: Uart, value: u8) void {
         self.writeWord(UART_REG_TXFIFO, value);
     }
+
+    pub fn isTxFull(self: Uart) bool {
+        // TODO: use a packed struct for the txdata register, with
+        // Zig 0.5 doing so unfourtunatly triggers a compiler bug.
+        const txdata = self.readWord(UART_REG_TXFIFO);
+        return (txdata & (1 << 31)) != 0;
+    }
 };
