@@ -22,10 +22,14 @@ const PLIC_CONTEXT_OFF: usize = 0x200000;
 
 // TODO
 const MCAUSE_IRQ_MASK: u32 = 31;
-const INTERRUPT_SOURCES: u6 = 52;
+const INTERRUPT_SOURCES: Irq = 52;
 
 // TODO
 var irq_handlers: [INTERRUPT_SOURCES]?(fn () void) = undefined;
+
+// Type alias for IRQ values, largest possible IRQ on the FE310 is
+// 52 (see INTERRUPT_SOURCES above), thus representable by a u6.
+pub const Irq = u6;
 
 pub const Plic = struct {
     base_addr: usize,
@@ -35,7 +39,7 @@ pub const Plic = struct {
         plic_thres.* = threshold;
     }
 
-    pub fn register_handler(self: Plic, irq: u32, handler: fn () void) !void {
+    pub fn register_handler(self: Plic, irq: Irq, handler: fn () void) !void {
         if (irq >= irq_handlers.len)
             return error.OutOfBounds;
         irq_handlers[irq] = handler;
@@ -62,7 +66,7 @@ pub const Plic = struct {
             return; // not an interrupt
 
         const claim_reg = @intToPtr(*volatile u32, PLIC_CTRL_ADDR + PLIC_CONTEXT_OFF + @sizeOf(u32));
-        const irq = claim_reg.*;
+        const irq = @intCast(Irq, claim_reg.*);
 
         if (irq_handlers[irq]) |handler|
             handler();
