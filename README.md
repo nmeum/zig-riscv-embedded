@@ -17,9 +17,9 @@ combines the two to output `Hello!` indefinitely.
 
 ## Building
 
-The code builds successfully with Zig `0.5.0+5990929247`. The Zig build
-system is used for building the application, the configuration is
-available in `build.zig`. To build the application run:
+The code builds successfully with Zig `0.6.0`. The Zig build system is
+used for building the application, the configuration is available in
+`build.zig`. To build the application run:
 
 	$ zig build
 
