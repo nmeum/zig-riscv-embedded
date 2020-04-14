@@ -23,14 +23,14 @@ const PLIC_CONTEXT_OFF: usize = 0x200000;
 const MCAUSE_IRQ_MASK: u32 = 31;
 const INTERRUPT_SOURCES: Irq = 52;
 
-var irq_handlers: [INTERRUPT_SOURCES]?(fn () void) = undefined;
-
 // Type alias for IRQ values, largest possible IRQ on the FE310 is
 // 52 (see INTERRUPT_SOURCES above), thus representable by a u6.
 pub const Irq = u6;
 
 pub const Plic = struct {
     base_addr: usize,
+
+    var irq_handlers: [INTERRUPT_SOURCES]?(fn () void) = undefined;
 
     pub fn setThreshold(self: Plic, threshold: u3) void {
         const plic_thres = @intToPtr(*volatile u32, PLIC_CTRL_ADDR + PLIC_CONTEXT_OFF);
