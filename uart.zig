@@ -28,6 +28,8 @@ const UART_RX_WATERMARK: u3 = 1;
 pub const Uart = struct {
     base_addr: usize,
 
+    const FIFO_DEPTH = 8;
+
     pub const txctrl = packed struct {
         txen: bool,
         nstop: u1,
