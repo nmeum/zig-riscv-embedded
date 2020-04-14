@@ -15,7 +15,7 @@
 
 const Plic = @import("plic.zig").Plic;
 const Uart = @import("uart.zig").Uart;
-const OutStream = @import("streams.zig").UnbufferedOutStream;
+const Streams = @import("streams.zig");
 const StackTrace = @import("std").builtin.StackTrace;
 
 // Addresses of FE310 peripherals.
@@ -38,7 +38,7 @@ pub fn panic(msg: []const u8, error_return_trace: ?*StackTrace) noreturn {
     // copied from the default_panic implementation
     @setCold(true);
 
-    const stream = OutStream.init(uart1);
+    const stream = Streams.UnbufferedOutStream.init(uart1);
     stream.writeAll(msg) catch void;
 
     asm volatile ("EBREAK");
@@ -50,8 +50,10 @@ pub fn uartIrq() void {
     if (!ip.txwm)
         return; // Not a transmit interrupt
 
-    const stream = OutStream.init(uart1);
-    stream.writeAll("Hello!\n") catch void;
+    var stream = Streams.BufferedOutStream.init(UART1_IRQ, plic1, uart1) catch |err| {
+        @panic("unexpected error");
+    };
+    stream.writeAll("Hello!\n") catch return;
 }
 
 export fn level1IRQHandler() void {

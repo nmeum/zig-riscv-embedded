@@ -13,8 +13,13 @@
 // You should have received a copy of the GNU General Public License along
 // with this program. If not, see <http://www.gnu.org/licenses/>.
 
-const Uart = @import("uart.zig").Uart;
+const plic = @import("plic.zig");
+const std = @import("std");
 const io = @import("std").io;
+
+const Irq = plic.Irq;
+const Plic = plic.Plic;
+const Uart = @import("uart.zig").Uart;
 
 pub const UnbufferedOutStream = struct {
     const Error = error{};
@@ -35,4 +40,37 @@ pub const UnbufferedOutStream = struct {
     }
 };
 
-// TODO: Add a buffered (interrupt-driven) variant
+const Fifo = std.fifo.LinearFifo(u8, .{ .Static = 100 });
+
+pub const BufferedOutStream = struct {
+    plic: Plic,
+    uart: Uart,
+    fifo: Fifo,
+
+    const Error = error{OutOfMemory};
+    const OutStream = io.OutStream(*Self, Error, write);
+
+    const Self = @This();
+
+    fn irqHandler() void {
+        // TODO: Requires context
+    }
+
+    fn write(self: *BufferedOutStream, data: []const u8) Error!usize {
+        try self.fifo.write(data);
+        return data.len;
+    }
+
+    pub fn init(irq: Irq, pdriver: Plic, udriver: Uart) !OutStream {
+        var stream = BufferedOutStream{
+            .plic = pdriver,
+            .uart = udriver,
+            .fifo = Fifo.init(),
+        };
+
+        const ptr = &stream;
+        try pdriver.register_handler(irq, irqHandler);
+
+        return OutStream{ .context = ptr };
+    }
+};
