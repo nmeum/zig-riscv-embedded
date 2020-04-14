@@ -45,7 +45,7 @@ pub fn panic(msg: []const u8, error_return_trace: ?*StackTrace) noreturn {
     while (true) {}
 }
 
-pub fn uart_irq() void {
+pub fn uartIrq() void {
     const ip = uart1.readIp();
     if (!ip.txwm)
         return; // Not a transmit interrupt
@@ -59,7 +59,7 @@ export fn level1IRQHandler() void {
 
 export fn myinit() void {
     plic1.setThreshold(0);
-    plic1.register_handler(UART0_IRQ, uart_irq) catch |err| {
+    plic1.register_handler(UART0_IRQ, uartIrq) catch |err| {
         // TODO: emit error message
         @panic("error encountered");
     };
