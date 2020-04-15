@@ -27,17 +27,20 @@ const INTERRUPT_SOURCES: Irq = 52;
 // 52 (see INTERRUPT_SOURCES above), thus representable by a u6.
 pub const Irq = u6;
 
+// Type alias for PLIC interrupt handler functions.
+pub const Handler = fn () void;
+
 pub const Plic = struct {
     base_addr: usize,
 
-    var irq_handlers: [INTERRUPT_SOURCES]?(fn () void) = undefined;
+    var irq_handlers: [INTERRUPT_SOURCES]?Handler = undefined;
 
     pub fn setThreshold(self: Plic, threshold: u3) void {
         const plic_thres = @intToPtr(*volatile u32, PLIC_CTRL_ADDR + PLIC_CONTEXT_OFF);
         plic_thres.* = threshold;
     }
 
-    pub fn registerHandler(self: Plic, irq: Irq, handler: fn () void) !void {
+    pub fn registerHandler(self: Plic, irq: Irq, handler: Handler) !void {
         if (irq >= irq_handlers.len)
             return error.OutOfBounds;
         irq_handlers[irq] = handler;
