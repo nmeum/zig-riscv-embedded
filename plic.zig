@@ -27,22 +27,26 @@ const INTERRUPT_SOURCES: Irq = 52;
 pub const Irq = u6;
 
 // Type alias for PLIC interrupt handler functions.
-pub const Handler = fn () void;
+pub const Handler = fn (args: ?*const c_void) void;
 
 pub const Plic = struct {
     base_addr: usize,
 
+    // TODO: Get rid of c_void in the long run.
     var irq_handlers: [INTERRUPT_SOURCES]?Handler = undefined;
+    var irq_contexts: [INTERRUPT_SOURCES]?*const c_void = undefined;
 
     pub fn setThreshold(self: Plic, threshold: u3) void {
         const plic_thres = @intToPtr(*volatile u32, PLIC_CTRL_ADDR + PLIC_CONTEXT_OFF);
         plic_thres.* = threshold;
     }
 
-    pub fn registerHandler(self: Plic, irq: Irq, handler: Handler) !void {
+    pub fn registerHandler(self: Plic, irq: Irq, func: Handler, ctx: ?*const c_void) !void {
         if (irq >= irq_handlers.len)
             return error.OutOfBounds;
-        irq_handlers[irq] = handler;
+
+        irq_handlers[irq] = func;
+        irq_contexts[irq] = ctx;
 
         // Set PLIC priority for IRQ
         const plic_prio = @intToPtr(*volatile u32, PLIC_CTRL_ADDR +
@@ -62,7 +66,7 @@ pub const Plic = struct {
         const irq = @intCast(Irq, claim_reg.*);
 
         if (irq_handlers[irq]) |handler|
-            handler();
+            handler(irq_contexts[irq]);
 
         // Mark interrupt as completed
         claim_reg.* = irq;

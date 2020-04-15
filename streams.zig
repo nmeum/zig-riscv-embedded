@@ -59,7 +59,7 @@ pub const BufferedOutStream = struct {
 
     const Self = @This();
 
-    fn irqHandler() void {
+    fn irqHandler(ctx: ?*const c_void) void {
         var stream: *BufferedOutStream = &irq_stream.?;
         const ip = stream.uart.readIp();
         if (!ip.txwm)
@@ -108,7 +108,7 @@ pub const BufferedOutStream = struct {
         pdriver.setThreshold(0);
 
         var ptr: *BufferedOutStream = &(irq_stream.?);
-        try pdriver.registerHandler(irq, irqHandler);
+        try pdriver.registerHandler(irq, irqHandler, null);
 
         udriver.writeTxctrl(Uart.txctrl{
             .txen = true,
