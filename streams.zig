@@ -60,7 +60,7 @@ pub const BufferedOutStream = struct {
     const Self = @This();
 
     fn irqHandler() void {
-        var stream = irq_stream orelse @panic("missing stream");
+        var stream: *BufferedOutStream = &irq_stream.?;
         const ip = stream.uart.readIp();
         if (!ip.txwm)
             return; // Not a transmit interrupt
