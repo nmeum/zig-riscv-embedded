@@ -45,26 +45,14 @@ pub fn panic(msg: []const u8, error_return_trace: ?*StackTrace) noreturn {
     while (true) {}
 }
 
-pub fn uartIrq() void {
-    const ip = uart1.readIp();
-    if (!ip.txwm)
-        return; // Not a transmit interrupt
-
-    var stream = Streams.BufferedOutStream.init(UART1_IRQ, plic1, uart1) catch |err| {
-        @panic("unexpected error");
-    };
-    stream.writeAll("Hello!\n") catch return;
-}
-
 export fn level1IRQHandler() void {
     plic1.invokeHandler();
 }
 
 export fn myinit() void {
-    plic1.setThreshold(0);
-    plic1.registerHandler(UART0_IRQ, uartIrq) catch |err| {
+    var stream = Streams.BufferedOutStream.init(UART1_IRQ, plic1, uart1) catch |err| {
         // TODO: emit error message
-        @panic("error encountered");
+        @panic("could not initialize stream");
     };
 
     return;
