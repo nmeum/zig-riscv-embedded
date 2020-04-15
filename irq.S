@@ -48,11 +48,6 @@ lvl0_handler:
     # Jump to the level 1 trap handler written in Zig
     jal level1IRQHandler
 
-    # Set the return address to the next instruction
-    csrr t0, mepc
-    addi t0, t0, 4
-    csrw mepc, t0
-
     # Load all register values from the stack and return
     lw x1, 0x0(sp)
     lw x4, 3 * 4(sp)
