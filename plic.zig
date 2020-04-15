@@ -20,7 +20,6 @@ const PLIC_PENDING_OFF: usize = 0x1000;
 const PLIC_ENABLE_OFF: usize = 0x2000;
 const PLIC_CONTEXT_OFF: usize = 0x200000;
 
-const MCAUSE_IRQ_MASK: u32 = 31;
 const INTERRUPT_SOURCES: Irq = 52;
 
 // Type alias for IRQ values, largest possible IRQ on the FE310 is
@@ -59,13 +58,6 @@ pub const Plic = struct {
     }
 
     pub fn invokeHandler(self: Plic) void {
-        const mcause = asm ("csrr %[ret], mcause"
-            : [ret] "=r" (-> u32)
-        );
-
-        if ((mcause >> MCAUSE_IRQ_MASK) != 1)
-            return; // not an interrupt
-
         const claim_reg = @intToPtr(*volatile u32, PLIC_CTRL_ADDR + PLIC_CONTEXT_OFF + @sizeOf(u32));
         const irq = @intCast(Irq, claim_reg.*);
 

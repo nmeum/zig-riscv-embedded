@@ -27,6 +27,8 @@ const PLIC_CTRL_ADDR: usize = 0x0C000000;
 const UART0_IRQ = 3;
 const UART1_IRQ = 4;
 
+const MCAUSE_IRQ_MASK: u32 = 31;
+
 const plic1: Plic = Plic{
     .base_addr = PLIC_CTRL_ADDR,
 };
@@ -46,6 +48,13 @@ pub fn panic(msg: []const u8, error_return_trace: ?*StackTrace) noreturn {
 }
 
 export fn level1IRQHandler() void {
+    const mcause = asm ("csrr %[ret], mcause"
+        : [ret] "=r" (-> u32)
+    );
+
+    if ((mcause >> MCAUSE_IRQ_MASK) != 1)
+        return; // not an interrupt
+
     plic1.invokeHandler();
 }
 
