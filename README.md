@@ -46,6 +46,13 @@ Using qemu:
 The application should also boot successfully on the HiFive1, though I
 haven't gotten around to testing it yet.
 
+## Development
+
+A pre-commit git hook for checking if files are properly formated is
+provided in `.githooks`. It can be activated using:
+
+	$ git config --local core.hooksPath .githooks
+
 ## License
 
 The application uses slightly modified linker scripts and assembler
