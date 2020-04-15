@@ -58,7 +58,7 @@ export fn level1IRQHandler() void {
     plic1.invokeHandler();
 }
 
-export fn myinit() void {
+export fn init() void {
     var stream = Streams.BufferedOutStream.init(UART0_IRQ, plic1, uart1) catch |err| {
         // TODO: emit error message
         @panic("could not initialize stream");
