@@ -42,6 +42,11 @@ pub const UnbufferedOutStream = struct {
 
 const Fifo = std.fifo.LinearFifo(u8, .{ .Static = 100 });
 
+// XXX: This is a dirty hack to work around the fact that it is not
+// possible to pass any context to an IRQ handler. A global variable
+// is thus used to obtain this context for now.
+var irq_stream: ?*BufferedOutStream = null;
+
 pub const BufferedOutStream = struct {
     plic: Plic,
     uart: Uart,
@@ -53,7 +58,17 @@ pub const BufferedOutStream = struct {
     const Self = @This();
 
     fn irqHandler() void {
-        // TODO: Requires context
+        const stream = irq_stream orelse @panic("missing stream");
+
+        var count = Uart.FIFO_DEPTH;
+        while (count > 0) : (count -= 1) {
+            const c: u8 = stream.fifo.readItem() catch |err| {
+                if (err == error.EndOfStream)
+                    return;
+                @panic("unexpected error in irqHandler");
+            };
+            stream.uart.write_byte(c);
+        }
     }
 
     fn write(self: *BufferedOutStream, data: []const u8) Error!usize {
@@ -71,6 +86,7 @@ pub const BufferedOutStream = struct {
         const ptr = &stream;
         try pdriver.registerHandler(irq, irqHandler);
 
+        irq_stream = &stream;
         return OutStream{ .context = ptr };
     }
 };
