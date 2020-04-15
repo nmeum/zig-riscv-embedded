@@ -53,7 +53,7 @@ export fn level1IRQHandler() void {
     );
 
     if ((mcause >> MCAUSE_IRQ_MASK) != 1)
-        return; // not an interrupt
+        @panic("unexpected trap");
 
     plic1.invokeHandler();
 }
