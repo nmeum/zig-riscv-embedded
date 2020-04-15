@@ -86,8 +86,8 @@ pub const BufferedOutStream = struct {
     fn write(self: *BufferedOutStream, data: []const u8) Error!usize {
         try self.fifo.write(data);
         self.uart.writeIe(Uart.ie{
-                .txwm = true,
-                .rxwm = false,
+            .txwm = true,
+            .rxwm = false,
         });
         return data.len;
     }
@@ -105,9 +105,9 @@ pub const BufferedOutStream = struct {
         try pdriver.registerHandler(irq, irqHandler);
 
         udriver.writeTxctrl(Uart.txctrl{
-                .txen = true,
-                .nstop = 0,
-                .txcnt = 1,
+            .txen = true,
+            .nstop = 0,
+            .txcnt = 1,
         });
 
         return OutStream{ .context = ptr };
