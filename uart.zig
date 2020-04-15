@@ -79,7 +79,7 @@ pub const Uart = struct {
         self.writeWord(UART_REG_IE, serialized);
     }
 
-    pub fn write_byte(self: Uart, value: u8) void {
+    pub fn writeByte(self: Uart, value: u8) void {
         self.writeWord(UART_REG_TXFIFO, value);
     }
 

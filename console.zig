@@ -41,7 +41,7 @@ pub const Console = struct {
             // If FIFO is full busy wait until it isn't.
             while (self.uart.isTxFull()) {} // XXX: use WFI?
 
-            self.uart.write_byte(c);
+            self.uart.writeByte(c);
         }
     }
 };
