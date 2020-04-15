@@ -29,7 +29,7 @@ pub const UnbufferedOutStream = struct {
         for (data) |c, i| {
             if (self.isTxFull())
                 return i;
-            self.write_byte(c);
+            self.writeByte(c);
         }
 
         return data.len;
