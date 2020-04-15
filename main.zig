@@ -41,7 +41,7 @@ pub fn panic(msg: []const u8, error_return_trace: ?*StackTrace) noreturn {
     @setCold(true);
 
     const stream = Streams.UnbufferedOutStream.init(uart1);
-    stream.writeAll(msg) catch void;
+    stream.print("PANIC: {}\n", .{msg}) catch void;
 
     asm volatile ("EBREAK");
     while (true) {}
