@@ -37,7 +37,7 @@ pub const Plic = struct {
         plic_thres.* = threshold;
     }
 
-    pub fn register_handler(self: Plic, irq: Irq, handler: fn () void) !void {
+    pub fn registerHandler(self: Plic, irq: Irq, handler: fn () void) !void {
         if (irq >= irq_handlers.len)
             return error.OutOfBounds;
         irq_handlers[irq] = handler;
@@ -55,7 +55,7 @@ pub const Plic = struct {
         plic_enable.* = @intCast(u32, 1) << off;
     }
 
-    pub fn invoke_handler(self: Plic) void {
+    pub fn invokeHandler(self: Plic) void {
         const mcause = asm ("csrr %[ret], mcause"
             : [ret] "=r" (-> u32)
         );

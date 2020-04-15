@@ -54,12 +54,12 @@ pub fn uartIrq() void {
 }
 
 export fn level1IRQHandler() void {
-    plic1.invoke_handler();
+    plic1.invokeHandler();
 }
 
 export fn myinit() void {
     plic1.setThreshold(0);
-    plic1.register_handler(UART0_IRQ, uartIrq) catch |err| {
+    plic1.registerHandler(UART0_IRQ, uartIrq) catch |err| {
         // TODO: emit error message
         @panic("error encountered");
     };
