@@ -70,7 +70,7 @@ pub const BufferedOutStream = struct {
                     return;
                 @panic("unexpected error in irqHandler");
             };
-            stream.uart.write_byte(c);
+            stream.uart.writeByte(c);
         }
     }
 
