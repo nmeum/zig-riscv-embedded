@@ -55,5 +55,9 @@ export fn myinit() void {
         @panic("could not initialize stream");
     };
 
+    stream.writeAll("Hello, World!\n") catch {
+        @panic("writeAll failed");
+    };
+
     return;
 }
