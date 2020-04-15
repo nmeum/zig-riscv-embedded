@@ -96,22 +96,15 @@ pub const BufferedOutStream = struct {
         return .{ .context = self };
     }
 
-    pub fn init(irq: Irq, pdriver: Plic, udriver: Uart) !BufferedOutStream {
-        var stream = BufferedOutStream{
-            .plic = pdriver,
-            .uart = udriver,
-        };
-
+    pub fn init(self: *Self, irq: Irq) !void {
         // Threshold is not reset to zero by default.
-        pdriver.setThreshold(0);
+        self.plic.setThreshold(0);
 
-        try pdriver.registerHandler(irq, irqHandler, &stream);
-        udriver.writeTxctrl(Uart.txctrl{
+        try self.plic.registerHandler(irq, irqHandler, self);
+        self.uart.writeTxctrl(Uart.txctrl{
             .txen = true,
             .nstop = 0,
             .txcnt = 1,
         });
-
-        return stream;
     }
 };
