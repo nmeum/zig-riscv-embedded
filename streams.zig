@@ -86,11 +86,12 @@ pub const BufferedOutStream = struct {
             .fifo = Fifo.init(),
         };
 
+        pdriver.setThreshold(0);
+
         const ptr = &stream;
         irq_stream = ptr;
         try pdriver.registerHandler(irq, irqHandler);
 
-        pdriver.setThreshold(0);
         udriver.writeTxctrl(Uart.txctrl{
                 .txen = true,
                 .nstop = 0,
