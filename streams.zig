@@ -98,6 +98,7 @@ pub const BufferedOutStream = struct {
             .uart = udriver,
         };
 
+        // Threshold is not reset to zero by default.
         pdriver.setThreshold(0);
 
         var ptr: *BufferedOutStream = &(irq_stream.?);
