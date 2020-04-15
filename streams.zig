@@ -84,9 +84,9 @@ pub const BufferedOutStream = struct {
         };
 
         const ptr = &stream;
+        irq_stream = ptr;
         try pdriver.registerHandler(irq, irqHandler);
 
-        irq_stream = &stream;
         return OutStream{ .context = ptr };
     }
 };
