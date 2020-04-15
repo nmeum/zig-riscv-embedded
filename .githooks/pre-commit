@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# XXX: Unfourtunatly, it's difficult to differentiate between a
+# `zig fmt` usage error and an "found unformated file"-error.
+# To workaround this, we only check the output not the exit code.
+files=$(git diff-index --name-only --cached HEAD -- '*.zig' | \
+	xargs zig fmt --check 2>&1 | \
+	grep -v "expected at least one source file argument")
+
+if [ -n "$files" ]; then
+	printf "The following files need to be formated with 'zig fmt':\n\n" 1>&2
+	printf "%s\n" "$files" | sed 's/^/\t/g' 1>&2
+	exit 1
+fi
