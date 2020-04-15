@@ -87,6 +87,16 @@ pub const BufferedOutStream = struct {
         irq_stream = ptr;
         try pdriver.registerHandler(irq, irqHandler);
 
+        udriver.writeTxctrl(Uart.txctrl{
+                .txen = true,
+                .nstop = 0,
+                .txcnt = 1,
+        });
+        udriver.writeIe(Uart.ie{
+                .txwm = true,
+                .rxwm = false,
+        });
+
         return OutStream{ .context = ptr };
     }
 };

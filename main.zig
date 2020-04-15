@@ -67,15 +67,5 @@ export fn myinit() void {
         @panic("error encountered");
     };
 
-    uart1.writeTxctrl(Uart.txctrl{
-        .txen = true,
-        .nstop = 0,
-        .txcnt = 1,
-    });
-    uart1.writeIe(Uart.ie{
-        .txwm = true,
-        .rxwm = false,
-    });
-
     return;
 }
