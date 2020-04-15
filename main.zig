@@ -50,7 +50,7 @@ export fn level1IRQHandler() void {
 }
 
 export fn myinit() void {
-    var stream = Streams.BufferedOutStream.init(UART1_IRQ, plic1, uart1) catch |err| {
+    var stream = Streams.BufferedOutStream.init(UART0_IRQ, plic1, uart1) catch |err| {
         // TODO: emit error message
         @panic("could not initialize stream");
     };
