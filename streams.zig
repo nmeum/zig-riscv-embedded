@@ -90,6 +90,7 @@ pub const BufferedOutStream = struct {
         irq_stream = ptr;
         try pdriver.registerHandler(irq, irqHandler);
 
+        pdriver.setThreshold(0);
         udriver.writeTxctrl(Uart.txctrl{
                 .txen = true,
                 .nstop = 0,
