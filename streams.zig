@@ -40,7 +40,7 @@ pub const UnbufferedOutStream = struct {
     }
 };
 
-const Fifo = std.fifo.LinearFifo(u8, .{ .Static = 100 });
+const Fifo = std.fifo.LinearFifo(u8, .{ .Static = 32 });
 
 // XXX: This is a dirty hack to work around the fact that it is not
 // possible to pass any context to an IRQ handler. A global variable
