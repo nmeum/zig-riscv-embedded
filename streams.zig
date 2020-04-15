@@ -59,6 +59,9 @@ pub const BufferedOutStream = struct {
 
     fn irqHandler() void {
         const stream = irq_stream orelse @panic("missing stream");
+        const ip = stream.uart.readIp();
+        if (!ip.txwm)
+            return; // Not a transmit interrupt
 
         var count = Uart.FIFO_DEPTH;
         while (count > 0) : (count -= 1) {
