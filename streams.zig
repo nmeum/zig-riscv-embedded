@@ -45,12 +45,14 @@ const Fifo = std.fifo.LinearFifo(u8, .{ .Static = 100 });
 // XXX: This is a dirty hack to work around the fact that it is not
 // possible to pass any context to an IRQ handler. A global variable
 // is thus used to obtain this context for now.
-var irq_stream: ?*BufferedOutStream = null;
+//
+// Keep in mind that this is also used for memory allocation currently.
+var irq_stream: ?BufferedOutStream = null;
 
 pub const BufferedOutStream = struct {
     plic: Plic,
     uart: Uart,
-    fifo: Fifo,
+    fifo: Fifo = Fifo.init(),
 
     const Error = error{OutOfMemory};
     const OutStream = io.OutStream(*Self, Error, write);
@@ -58,7 +60,7 @@ pub const BufferedOutStream = struct {
     const Self = @This();
 
     fn irqHandler() void {
-        const stream = irq_stream orelse @panic("missing stream");
+        var stream = irq_stream orelse @panic("missing stream");
         const ip = stream.uart.readIp();
         if (!ip.txwm)
             return; // Not a transmit interrupt
@@ -67,39 +69,44 @@ pub const BufferedOutStream = struct {
         while (count > 0) : (count -= 1) {
             const c: u8 = stream.fifo.readItem() catch |err| {
                 if (err == error.EndOfStream)
-                    return;
+                    break;
                 @panic("unexpected error in irqHandler");
             };
             stream.uart.writeByte(c);
+        }
+
+        if (stream.fifo.readableLength() == 0) {
+            stream.uart.writeIe(Uart.ie{
+                .txwm = false,
+                .rxwm = false,
+            });
         }
     }
 
     fn write(self: *BufferedOutStream, data: []const u8) Error!usize {
         try self.fifo.write(data);
+        self.uart.writeIe(Uart.ie{
+                .txwm = true,
+                .rxwm = false,
+        });
         return data.len;
     }
 
     pub fn init(irq: Irq, pdriver: Plic, udriver: Uart) !OutStream {
-        var stream = BufferedOutStream{
+        irq_stream = BufferedOutStream{
             .plic = pdriver,
             .uart = udriver,
-            .fifo = Fifo.init(),
         };
 
         pdriver.setThreshold(0);
 
-        const ptr = &stream;
-        irq_stream = ptr;
+        var ptr: *BufferedOutStream = &(irq_stream.?);
         try pdriver.registerHandler(irq, irqHandler);
 
         udriver.writeTxctrl(Uart.txctrl{
                 .txen = true,
                 .nstop = 0,
                 .txcnt = 1,
-        });
-        udriver.writeIe(Uart.ie{
-                .txwm = true,
-                .rxwm = false,
         });
 
         return OutStream{ .context = ptr };
