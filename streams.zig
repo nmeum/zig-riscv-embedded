@@ -46,6 +46,7 @@ pub const BufferedStream = struct {
     plic: Plic,
     uart: Uart,
     tx_fifo: Fifo = Fifo.init(),
+    rx_fifo: Fifo = Fifo.init(),
 
     const OutError = error{OutOfMemory};
     const OutStream = io.OutStream(*Self, OutError, write);
@@ -75,7 +76,21 @@ pub const BufferedStream = struct {
     }
 
     fn rxIrqHandler(stream: *BufferedStream) void {
-        return; // TODO
+        var buf: [Uart.FIFO_DEPTH]u8 = undefined;
+
+        var n: usize = 0;
+        while (n < buf.len) : (n += 1) {
+            buf[n] = stream.uart.readByte() catch |err| {
+                if (err == error.EndOfStream)
+                    break;
+                unreachable;
+            };
+        }
+
+        if (stream.rx_fifo.writableLength() < n)
+            stream.rx_fifo.discard(n);
+
+        stream.rx_fifo.writeAssumeCapacity(buf[0..n]);
     }
 
     fn irqHandler(ctx: ?*c_void) void {
@@ -104,7 +119,10 @@ pub const BufferedStream = struct {
     }
 
     fn read(self: *BufferedStream, dest: []u8) InError!usize {
-        return 0;
+        if (self.rx_fifo.readableLength() == 0)
+            asm volatile ("WFI");
+
+        return self.rx_fifo.read(dest);
     }
 
     pub fn outStream(self: *Self) OutStream {
