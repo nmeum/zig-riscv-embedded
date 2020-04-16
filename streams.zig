@@ -42,7 +42,7 @@ pub const UnbufferedOutStream = struct {
 
 const Fifo = std.fifo.LinearFifo(u8, .{ .Static = 32 });
 
-pub const BufferedOutStream = struct {
+pub const BufferedStream = struct {
     plic: Plic,
     uart: Uart,
     fifo: Fifo = Fifo.init(),
@@ -53,7 +53,7 @@ pub const BufferedOutStream = struct {
     const Self = @This();
 
     fn irqHandler(ctx: ?*c_void) void {
-        var stream: *BufferedOutStream = @ptrCast(*BufferedOutStream, @alignCast(@alignOf(BufferedOutStream), ctx));
+        var stream: *BufferedStream = @ptrCast(*BufferedStream, @alignCast(@alignOf(BufferedStream), ctx));
 
         const ip = stream.uart.readIp();
         if (!ip.txwm)

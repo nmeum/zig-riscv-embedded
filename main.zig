@@ -59,7 +59,7 @@ export fn level1IRQHandler() void {
 }
 
 export fn init() void {
-    var bstream: Streams.BufferedOutStream = .{
+    var bstream: Streams.BufferedStream = .{
         .plic = plic0,
         .uart = uart0,
     };
