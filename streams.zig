@@ -15,7 +15,8 @@
 
 const plic = @import("plic.zig");
 const std = @import("std");
-const io = @import("std").io;
+const io = std.io;
+const math = std.math;
 
 const Irq = plic.Irq;
 const Plic = plic.Plic;
@@ -104,10 +105,7 @@ pub const BufferedStream = struct {
     }
 
     fn write(self: *BufferedStream, data: []const u8) OutError!usize {
-        // XXX: Consider blocking (WFI) instead of performing short write?
-        var maxlen: usize = data.len;
-        if (maxlen >= self.tx_fifo.writableLength())
-            maxlen = self.tx_fifo.writableLength();
+        var maxlen: usize = math.min(data.len, self.tx_fifo.writableLength());
         self.tx_fifo.writeAssumeCapacity(data[0..maxlen]);
 
         self.uart.writeIe(Uart.ie{
