@@ -42,13 +42,6 @@ pub const UnbufferedOutStream = struct {
 
 const Fifo = std.fifo.LinearFifo(u8, .{ .Static = 32 });
 
-// XXX: This is a dirty hack to work around the fact that it is not
-// possible to pass any context to an IRQ handler. A global variable
-// is thus used to obtain this context for now.
-//
-// Keep in mind that this is also used for memory allocation currently.
-var irq_stream: ?BufferedOutStream = null;
-
 pub const BufferedOutStream = struct {
     plic: Plic,
     uart: Uart,
@@ -59,8 +52,9 @@ pub const BufferedOutStream = struct {
 
     const Self = @This();
 
-    fn irqHandler() void {
-        var stream: *BufferedOutStream = &irq_stream.?;
+    fn irqHandler(ctx: ?*c_void) void {
+        var stream: *BufferedOutStream = @ptrCast(*BufferedOutStream, @alignCast(@alignOf(BufferedOutStream), ctx));
+
         const ip = stream.uart.readIp();
         if (!ip.txwm)
             return; // Not a transmit interrupt
@@ -98,24 +92,19 @@ pub const BufferedOutStream = struct {
         return maxlen;
     }
 
-    pub fn init(irq: Irq, pdriver: Plic, udriver: Uart) !OutStream {
-        irq_stream = BufferedOutStream{
-            .plic = pdriver,
-            .uart = udriver,
-        };
+    pub fn outStream(self: *Self) OutStream {
+        return .{ .context = self };
+    }
 
+    pub fn init(self: *Self, irq: Irq) !void {
         // Threshold is not reset to zero by default.
-        pdriver.setThreshold(0);
+        self.plic.setThreshold(0);
 
-        var ptr: *BufferedOutStream = &(irq_stream.?);
-        try pdriver.registerHandler(irq, irqHandler);
-
-        udriver.writeTxctrl(Uart.txctrl{
+        try self.plic.registerHandler(irq, irqHandler, self);
+        self.uart.writeTxctrl(Uart.txctrl{
             .txen = true,
             .nstop = 0,
             .txcnt = 1,
         });
-
-        return OutStream{ .context = ptr };
     }
 };
