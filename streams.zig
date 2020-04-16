@@ -50,6 +50,9 @@ pub const BufferedStream = struct {
     const OutError = error{OutOfMemory};
     const OutStream = io.OutStream(*Self, OutError, write);
 
+    const InError = error{};
+    const InStream = io.InStream(*Self, InError, read);
+
     const Self = @This();
 
     fn irqHandler(ctx: ?*c_void) void {
@@ -92,7 +95,15 @@ pub const BufferedStream = struct {
         return maxlen;
     }
 
+    fn read(self: *BufferedStream, dest: []u8) InError!usize {
+        return 0;
+    }
+
     pub fn outStream(self: *Self) OutStream {
+        return .{ .context = self };
+    }
+
+    pub fn inStream(self: *Self) InStream {
         return .{ .context = self };
     }
 
