@@ -47,8 +47,8 @@ pub const BufferedStream = struct {
     uart: Uart,
     fifo: Fifo = Fifo.init(),
 
-    const Error = error{OutOfMemory};
-    const OutStream = io.OutStream(*Self, Error, write);
+    const OutError = error{OutOfMemory};
+    const OutStream = io.OutStream(*Self, OutError, write);
 
     const Self = @This();
 
@@ -77,7 +77,7 @@ pub const BufferedStream = struct {
         }
     }
 
-    fn write(self: *BufferedOutStream, data: []const u8) Error!usize {
+    fn write(self: *BufferedStream, data: []const u8) OutError!usize {
         // XXX: Consider blocking (WFI) instead of performing short write?
         var maxlen: usize = data.len;
         if (maxlen >= self.fifo.writableLength())
