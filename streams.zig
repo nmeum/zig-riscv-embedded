@@ -70,7 +70,7 @@ pub const BufferedOutStream = struct {
             const c: u8 = stream.fifo.readItem() catch |err| {
                 if (err == error.EndOfStream)
                     break;
-                @panic("unexpected error in irqHandler");
+                unreachable;
             };
             stream.uart.writeByte(c);
         }
