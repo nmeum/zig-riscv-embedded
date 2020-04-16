@@ -84,14 +84,18 @@ pub const BufferedOutStream = struct {
     }
 
     fn write(self: *BufferedOutStream, data: []const u8) Error!usize {
-        // TODO: check capacity, peform short write if exceeded
-        try self.fifo.write(data);
+        // XXX: Consider blocking (WFI) instead of performing short write?
+        var maxlen: usize = data.len;
+        if (maxlen >= self.fifo.writableLength())
+            maxlen = self.fifo.writableLength();
+        self.fifo.writeAssumeCapacity(data[0..maxlen]);
 
         self.uart.writeIe(Uart.ie{
             .txwm = true,
             .rxwm = false,
         });
-        return data.len;
+
+        return maxlen;
     }
 
     pub fn init(irq: Irq, pdriver: Plic, udriver: Uart) !OutStream {
