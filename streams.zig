@@ -45,7 +45,7 @@ const Fifo = std.fifo.LinearFifo(u8, .{ .Static = 32 });
 pub const BufferedStream = struct {
     plic: Plic,
     uart: Uart,
-    fifo: Fifo = Fifo.init(),
+    tx_fifo: Fifo = Fifo.init(),
 
     const OutError = error{OutOfMemory};
     const OutStream = io.OutStream(*Self, OutError, write);
@@ -58,7 +58,7 @@ pub const BufferedStream = struct {
     fn txIrqHandler(stream: *BufferedStream) void {
         var count = Uart.FIFO_DEPTH;
         while (count > 0) : (count -= 1) {
-            const c: u8 = stream.fifo.readItem() catch |err| {
+            const c: u8 = stream.tx_fifo.readItem() catch |err| {
                 if (err == error.EndOfStream)
                     break;
                 unreachable;
@@ -66,7 +66,7 @@ pub const BufferedStream = struct {
             stream.uart.writeByte(c);
         }
 
-        if (stream.fifo.readableLength() == 0) {
+        if (stream.tx_fifo.readableLength() == 0) {
             stream.uart.writeIe(Uart.ie{
                 .txwm = false,
                 .rxwm = false,
@@ -91,9 +91,9 @@ pub const BufferedStream = struct {
     fn write(self: *BufferedStream, data: []const u8) OutError!usize {
         // XXX: Consider blocking (WFI) instead of performing short write?
         var maxlen: usize = data.len;
-        if (maxlen >= self.fifo.writableLength())
-            maxlen = self.fifo.writableLength();
-        self.fifo.writeAssumeCapacity(data[0..maxlen]);
+        if (maxlen >= self.tx_fifo.writableLength())
+            maxlen = self.tx_fifo.writableLength();
+        self.tx_fifo.writeAssumeCapacity(data[0..maxlen]);
 
         self.uart.writeIe(Uart.ie{
             .txwm = true,
