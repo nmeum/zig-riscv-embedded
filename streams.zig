@@ -84,7 +84,9 @@ pub const BufferedOutStream = struct {
     }
 
     fn write(self: *BufferedOutStream, data: []const u8) Error!usize {
+        // TODO: check capacity, peform short write if exceeded
         try self.fifo.write(data);
+
         self.uart.writeIe(Uart.ie{
             .txwm = true,
             .rxwm = false,
