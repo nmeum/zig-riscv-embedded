@@ -55,13 +55,7 @@ pub const BufferedStream = struct {
 
     const Self = @This();
 
-    fn irqHandler(ctx: ?*c_void) void {
-        var stream: *BufferedStream = @ptrCast(*BufferedStream, @alignCast(@alignOf(BufferedStream), ctx));
-
-        const ip = stream.uart.readIp();
-        if (!ip.txwm)
-            return; // Not a transmit interrupt
-
+    fn txIrqHandler(stream: *BufferedStream) void {
         var count = Uart.FIFO_DEPTH;
         while (count > 0) : (count -= 1) {
             const c: u8 = stream.fifo.readItem() catch |err| {
@@ -78,6 +72,20 @@ pub const BufferedStream = struct {
                 .rxwm = false,
             });
         }
+    }
+
+    fn rxIrqHandler(stream: *BufferedStream) void {
+        return; // TODO
+    }
+
+    fn irqHandler(ctx: ?*c_void) void {
+        var stream: *BufferedStream = @ptrCast(*BufferedStream, @alignCast(@alignOf(BufferedStream), ctx));
+
+        const ip = stream.uart.readIp();
+        if (ip.txwm)
+            txIrqHandler(stream);
+        if (ip.rxwm)
+            rxIrqHandler(stream);
     }
 
     fn write(self: *BufferedStream, data: []const u8) OutError!usize {
