@@ -29,7 +29,7 @@ const UART1_IRQ = 4;
 
 const MCAUSE_IRQ_MASK: u32 = 31;
 
-const plic1: Plic = Plic{
+const plic0: Plic = Plic{
     .base_addr = PLIC_CTRL_ADDR,
 };
 const uart0: Uart = Uart{
@@ -55,11 +55,11 @@ export fn level1IRQHandler() void {
     if ((mcause >> MCAUSE_IRQ_MASK) != 1)
         @panic("unexpected trap"); // not an interrupt
 
-    plic1.invokeHandler();
+    plic0.invokeHandler();
 }
 
 export fn init() void {
-    var stream = Streams.BufferedOutStream.init(UART0_IRQ, plic1, uart0) catch |err| {
+    var stream = Streams.BufferedOutStream.init(UART0_IRQ, plic0, uart0) catch |err| {
         // TODO: emit error message
         @panic("could not initialize stream");
     };
