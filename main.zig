@@ -32,7 +32,7 @@ const MCAUSE_IRQ_MASK: u32 = 31;
 const plic1: Plic = Plic{
     .base_addr = PLIC_CTRL_ADDR,
 };
-const uart1: Uart = Uart{
+const uart0: Uart = Uart{
     .base_addr = UART0_CTRL_ADDR,
 };
 
@@ -40,7 +40,7 @@ pub fn panic(msg: []const u8, error_return_trace: ?*StackTrace) noreturn {
     // copied from the default_panic implementation
     @setCold(true);
 
-    const stream = Streams.UnbufferedOutStream.init(uart1);
+    const stream = Streams.UnbufferedOutStream.init(uart0);
     stream.print("PANIC: {}\n", .{msg}) catch void;
 
     asm volatile ("EBREAK");
@@ -59,7 +59,7 @@ export fn level1IRQHandler() void {
 }
 
 export fn init() void {
-    var stream = Streams.BufferedOutStream.init(UART0_IRQ, plic1, uart1) catch |err| {
+    var stream = Streams.BufferedOutStream.init(UART0_IRQ, plic1, uart0) catch |err| {
         // TODO: emit error message
         @panic("could not initialize stream");
     };
