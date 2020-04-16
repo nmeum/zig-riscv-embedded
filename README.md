@@ -12,8 +12,10 @@ application on "real hardware", it can also be run using an emulator.
 
 The mid-term goal is to provide somewhat usable abstractions for
 interacting with the UART and the PLIC. These abstractions are currently
-being developed in `uart.zig` and `plic.zig`. The `main.zig` file
-combines the two to output `Hello!` indefinitely.
+being developed in `uart.zig` and `plic.zig`. Based on these
+abstractions, an implementation of Zig input and output streams is being
+developed in `streams.zig`. The file `main.zig` uses the aforementioned
+abstractions to output `Hello, World!`.
 
 ## Building
 
