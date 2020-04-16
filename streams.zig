@@ -70,7 +70,7 @@ pub const BufferedStream = struct {
         if (stream.tx_fifo.readableLength() == 0) {
             stream.uart.writeIe(Uart.ie{
                 .txwm = false,
-                .rxwm = false,
+                .rxwm = true,
             });
         }
     }
@@ -112,7 +112,7 @@ pub const BufferedStream = struct {
 
         self.uart.writeIe(Uart.ie{
             .txwm = true,
-            .rxwm = false,
+            .rxwm = true,
         });
 
         return maxlen;
@@ -142,6 +142,11 @@ pub const BufferedStream = struct {
             .txen = true,
             .nstop = 0,
             .txcnt = 1,
+        });
+
+        self.uart.writeIe(Uart.ie{
+            .txwm = false,
+            .rxwm = true,
         });
     }
 };
