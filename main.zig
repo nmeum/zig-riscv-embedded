@@ -68,9 +68,22 @@ export fn init() void {
         @panic("could not initialize stream");
     };
 
-    const stream = bstream.outStream();
-    stream.writeAll("Hello, World!\n") catch {
+    const out = bstream.outStream();
+    out.writeAll("Type three characters: ") catch {
         @panic("writeAll failed");
+    };
+
+    const in = bstream.inStream();
+    var buf: [3]u8 = undefined;
+    const read = in.readAll(&buf) catch {
+        @panic("read failed");
+    };
+
+    if (read != buf.len)
+        @panic("short read");
+
+    out.print("\nYour characters: {}\n", .{buf}) catch {
+        @panic("print failed");
     };
 
     return;
