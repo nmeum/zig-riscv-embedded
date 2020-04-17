@@ -36,12 +36,17 @@ const uart0: Uart = Uart{
     .base_addr = UART0_CTRL_ADDR,
 };
 
+var stream = Streams.BufferedStream{
+    .plic = plic0,
+    .uart = uart0,
+};
+
 pub fn panic(msg: []const u8, error_return_trace: ?*StackTrace) noreturn {
     // copied from the default_panic implementation
     @setCold(true);
 
-    const stream = Streams.UnbufferedOutStream.init(uart0);
-    stream.print("PANIC: {}\n", .{msg}) catch void;
+    const ustream = Streams.UnbufferedOutStream.init(uart0);
+    ustream.print("PANIC: {}\n", .{msg}) catch void;
 
     @breakpoint();
     while (true) {}
@@ -59,21 +64,18 @@ export fn level1IRQHandler() void {
 }
 
 export fn init() void {
-    var bstream: Streams.BufferedStream = .{
-        .plic = plic0,
-        .uart = uart0,
-    };
-    bstream.init(UART0_IRQ) catch |err| {
+    stream.init(UART0_IRQ) catch |err| {
         // TODO: emit error message
         @panic("could not initialize stream");
     };
 
-    const out = bstream.outStream();
+    const in = stream.inStream();
+    const out = stream.outStream();
+
     out.writeAll("Type three characters: ") catch {
         @panic("writeAll failed");
     };
 
-    const in = bstream.inStream();
     var buf: [3]u8 = undefined;
     const read = in.readAll(&buf) catch {
         @panic("read failed");
