@@ -117,7 +117,7 @@ pub const BufferedStream = struct {
     }
 
     fn read(self: *BufferedStream, dest: []u8) InError!usize {
-        if (self.rx_fifo.readableLength() == 0)
+        while (self.rx_fifo.readableLength() == 0)
             asm volatile ("WFI");
 
         return self.rx_fifo.read(dest);
