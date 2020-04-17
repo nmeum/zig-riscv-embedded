@@ -81,9 +81,6 @@ export fn init() void {
         @panic("read failed");
     };
 
-    if (read != buf.len)
-        @panic("short read");
-
     out.print("\nYour characters: {}\n", .{buf}) catch {
         @panic("print failed");
     };
