@@ -43,7 +43,7 @@ _start:
     bltu a0, a1, 1b
 2:
     call register_handler
-    call init
+    call main
 
     /* Loop forever (should never get here) */
 1:
