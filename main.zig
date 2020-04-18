@@ -41,6 +41,9 @@ var stream = Streams.BufferedStream{
     .uart = uart0,
 };
 
+var stdin: Streams.BufferedStream.InStream = undefined;
+var stdout: Streams.BufferedStream.OutStream = undefined;
+
 pub fn panic(msg: []const u8, error_return_trace: ?*StackTrace) noreturn {
     // copied from the default_panic implementation
     @setCold(true);
@@ -67,24 +70,24 @@ export fn init() void {
     // Threshold is not reset to zero by default.
     plic0.setThreshold(0);
 
-    stream.init(UART0_IRQ) catch |err| {
-        // TODO: emit error message
+    stream.init(UART0_IRQ) catch {
+        // XXX: stream is not initialized, warn() cannot be used
         @panic("could not initialize stream");
     };
 
-    const in = stream.inStream();
-    const out = stream.outStream();
+    stdin = stream.inStream();
+    stdout = stream.outStream();
 
-    out.writeAll("Type three characters: ") catch {
+    stdout.writeAll("Type three characters: ") catch {
         @panic("writeAll failed");
     };
 
     var buf: [3]u8 = undefined;
-    const read = in.readAll(&buf) catch {
+    const read = stdin.readAll(&buf) catch {
         @panic("read failed");
     };
 
-    out.print("\nYour characters: {}\n", .{buf}) catch {
+    stdout.print("\nYour characters: {}\n", .{buf}) catch {
         @panic("print failed");
     };
 
