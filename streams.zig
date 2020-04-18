@@ -50,10 +50,10 @@ pub const BufferedStream = struct {
     rx_fifo: Fifo = Fifo.init(),
 
     const OutError = error{OutOfMemory};
-    const OutStream = io.OutStream(*Self, OutError, write);
-
     const InError = error{};
-    const InStream = io.InStream(*Self, InError, read);
+
+    pub const OutStream = io.OutStream(*Self, OutError, write);
+    pub const InStream = io.InStream(*Self, InError, read);
 
     const Self = @This();
 
