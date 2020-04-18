@@ -45,8 +45,9 @@ _start:
     call register_handler
     call main
 
-    /* Loop forever (should never get here) */
+    /* Loop forever */
 1:
+    wfi
     j 1b
 
     .cfi_endproc
