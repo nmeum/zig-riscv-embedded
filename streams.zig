@@ -132,9 +132,6 @@ pub const BufferedStream = struct {
     }
 
     pub fn init(self: *Self, irq: Irq) !void {
-        // Threshold is not reset to zero by default.
-        self.plic.setThreshold(0);
-
         try self.plic.registerHandler(irq, irqHandler, self);
         self.uart.writeTxctrl(Uart.txctrl{
             .txen = true,

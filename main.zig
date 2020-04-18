@@ -64,6 +64,9 @@ export fn level1IRQHandler() void {
 }
 
 export fn init() void {
+    // Threshold is not reset to zero by default.
+    plic0.setThreshold(0);
+
     stream.init(UART0_IRQ) catch |err| {
         // TODO: emit error message
         @panic("could not initialize stream");
