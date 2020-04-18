@@ -16,6 +16,7 @@
 const hifive = @import("hifive.zig");
 
 export fn main() void {
+    // TODO: Jump from main → init instead of init → main
     hifive.init();
 
     hifive.warn("Hello, World!\n", .{});
