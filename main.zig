@@ -55,6 +55,10 @@ pub fn panic(msg: []const u8, error_return_trace: ?*StackTrace) noreturn {
     while (true) {}
 }
 
+pub fn warn(comptime fmt: []const u8, args: var) void {
+    stdout.print(fmt, args) catch return;
+}
+
 export fn level1IRQHandler() void {
     const mcause = asm ("csrr %[ret], mcause"
         : [ret] "=r" (-> u32)
