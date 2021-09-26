@@ -67,7 +67,7 @@ const Slip = struct {
 
     fn rxIrqHandler(self: *Slip) !void {
         var n: usize = 0;
-        while (n < Uart.FIFO_DEPTH) : (n += 1) {
+        while (true) {
             const byte = self.uart.readByte() catch |err| {
                 if (err == error.EndOfStream)
                     break;
