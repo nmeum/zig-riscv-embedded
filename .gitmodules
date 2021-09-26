@@ -1,0 +1,3 @@
+[submodule "zoap"]
+	path = zoap
+	url = git://git.8pit.net/zoap.git
