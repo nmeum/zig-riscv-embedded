@@ -14,6 +14,7 @@
 // with this program. If not, see <http://www.gnu.org/licenses/>.
 
 const io = @import("io.zig");
+const slipmux = @import("slipmux.zig");
 const Plic = @import("plic.zig").Plic;
 const Uart = @import("uart.zig").Uart;
 const StackTrace = @import("std").builtin.StackTrace;
