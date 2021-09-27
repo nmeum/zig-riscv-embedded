@@ -85,6 +85,7 @@ pub const Uart = struct {
         self.writeWord(UART_REG_TXFIFO, value);
     }
 
+    // TODO: Use optional instead of error
     pub fn readByte(self: Uart) !u8 {
         // TODO: use a packed struct for the rxdata register, with
         // Zig 0.6 doing so unfourtunatly triggers a compiler bug.
