@@ -13,9 +13,9 @@
 // You should have received a copy of the GNU General Public License along
 // with this program. If not, see <http://www.gnu.org/licenses/>.
 
+const io = @import("io.zig");
 const Plic = @import("plic.zig").Plic;
 const Uart = @import("uart.zig").Uart;
-const Streams = @import("streams.zig");
 const StackTrace = @import("std").builtin.StackTrace;
 
 // Addresses of FE310 peripherals.
@@ -36,7 +36,7 @@ const uart0: Uart = Uart{
     .base_addr = UART0_CTRL_ADDR,
 };
 
-var stream = Streams.BufferedStream{
+var stream = io.BufferedIO{
     .plic = plic0,
     .uart = uart0,
 };
@@ -45,7 +45,7 @@ pub fn panic(msg: []const u8, error_return_trace: ?*StackTrace) noreturn {
     // copied from the default_panic implementation
     @setCold(true);
 
-    const ustream = Streams.UnbufferedOutStream.init(uart0);
+    const ustream = io.UnbufferedWriter.init(uart0);
     ustream.print("PANIC: {}\n", .{msg}) catch void;
 
     @breakpoint();
@@ -72,8 +72,8 @@ export fn init() void {
         @panic("could not initialize stream");
     };
 
-    const in = stream.inStream();
-    const out = stream.outStream();
+    const in = stream.reader();
+    const out = stream.writer();
 
     out.writeAll("Type three characters: ") catch {
         @panic("writeAll failed");

@@ -15,16 +15,15 @@
 
 const plic = @import("plic.zig");
 const std = @import("std");
-const io = std.io;
 const math = std.math;
 
 const Irq = plic.Irq;
 const Plic = plic.Plic;
 const Uart = @import("uart.zig").Uart;
 
-pub const UnbufferedOutStream = struct {
+pub const UnbufferedWriter = struct {
     const Error = error{};
-    const OutStream = io.OutStream(Uart, Error, write);
+    const Writer = std.io.Writer(Uart, Error, write);
 
     fn write(self: Uart, data: []const u8) Error!usize {
         for (data) |c, i| {
@@ -36,74 +35,74 @@ pub const UnbufferedOutStream = struct {
         return data.len;
     }
 
-    pub fn init(uart: Uart) OutStream {
+    pub fn init(uart: Uart) Writer {
         return .{ .context = uart };
     }
 };
 
 const Fifo = std.fifo.LinearFifo(u8, .{ .Static = 32 });
 
-pub const BufferedStream = struct {
+pub const BufferedIO = struct {
     plic: Plic,
     uart: Uart,
     tx_fifo: Fifo = Fifo.init(),
     rx_fifo: Fifo = Fifo.init(),
 
     const OutError = error{OutOfMemory};
-    const OutStream = io.OutStream(*Self, OutError, write);
+    const Writer = std.io.Writer(*Self, OutError, write);
 
     const InError = error{};
-    const InStream = io.InStream(*Self, InError, read);
+    const Reader = std.io.Reader(*Self, InError, read);
 
     const Self = @This();
 
-    fn txIrqHandler(stream: *BufferedStream) void {
+    fn txIrqHandler(io: *BufferedIO) void {
         var count = Uart.FIFO_DEPTH;
         while (count > 0) : (count -= 1) {
-            const c = stream.tx_fifo.readItem();
+            const c = io.tx_fifo.readItem();
             if (c == null) {
                 break;
             }
-            stream.uart.writeByte(c.?);
+            io.uart.writeByte(c.?);
         }
 
-        if (stream.tx_fifo.readableLength() == 0) {
-            stream.uart.writeIe(Uart.ie{
+        if (io.tx_fifo.readableLength() == 0) {
+            io.uart.writeIe(Uart.ie{
                 .txwm = false,
                 .rxwm = true,
             });
         }
     }
 
-    fn rxIrqHandler(stream: *BufferedStream) void {
+    fn rxIrqHandler(io: *BufferedIO) void {
         var buf: [Uart.FIFO_DEPTH]u8 = undefined;
 
         var n: usize = 0;
         while (n < buf.len) : (n += 1) {
-            buf[n] = stream.uart.readByte() catch |err| {
+            buf[n] = io.uart.readByte() catch |err| {
                 if (err == error.EndOfStream)
                     break;
                 unreachable;
             };
         }
 
-        if (stream.rx_fifo.writableLength() < n)
-            stream.rx_fifo.discard(n);
+        if (io.rx_fifo.writableLength() < n)
+            io.rx_fifo.discard(n);
 
-        stream.rx_fifo.writeAssumeCapacity(buf[0..n]);
+        io.rx_fifo.writeAssumeCapacity(buf[0..n]);
     }
 
     fn irqHandler(ctx: ?*c_void) void {
-        var stream: *BufferedStream = @ptrCast(*BufferedStream, @alignCast(@alignOf(BufferedStream), ctx));
+        var io: *BufferedIO = @ptrCast(*BufferedIO, @alignCast(@alignOf(BufferedIO), ctx));
 
-        const ip = stream.uart.readIp();
+        const ip = io.uart.readIp();
         if (ip.txwm)
-            txIrqHandler(stream);
+            txIrqHandler(io);
         if (ip.rxwm)
-            rxIrqHandler(stream);
+            rxIrqHandler(io);
     }
 
-    fn write(self: *BufferedStream, data: []const u8) OutError!usize {
+    fn write(self: *BufferedIO, data: []const u8) OutError!usize {
         var maxlen: usize = math.min(data.len, self.tx_fifo.writableLength());
         self.tx_fifo.writeAssumeCapacity(data[0..maxlen]);
 
@@ -115,18 +114,18 @@ pub const BufferedStream = struct {
         return maxlen;
     }
 
-    fn read(self: *BufferedStream, dest: []u8) InError!usize {
+    fn read(self: *BufferedIO, dest: []u8) InError!usize {
         while (self.rx_fifo.readableLength() == 0)
             asm volatile ("WFI");
 
         return self.rx_fifo.read(dest);
     }
 
-    pub fn outStream(self: *Self) OutStream {
+    pub fn writer(self: *Self) Writer {
         return .{ .context = self };
     }
 
-    pub fn inStream(self: *Self) InStream {
+    pub fn reader(self: *Self) Reader {
         return .{ .context = self };
     }
 
