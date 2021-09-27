@@ -60,12 +60,11 @@ pub const BufferedStream = struct {
     fn txIrqHandler(stream: *BufferedStream) void {
         var count = Uart.FIFO_DEPTH;
         while (count > 0) : (count -= 1) {
-            const c: u8 = stream.tx_fifo.readItem() catch |err| {
-                if (err == error.EndOfStream)
-                    break;
-                unreachable;
-            };
-            stream.uart.writeByte(c);
+            const c = stream.tx_fifo.readItem();
+            if (c == null) {
+                break;
+            }
+            stream.uart.writeByte(c.?);
         }
 
         if (stream.tx_fifo.readableLength() == 0) {
