@@ -1,3 +1,5 @@
+const zoap = @import("zoap");
+
 const Plic = @import("plic.zig").Plic;
 const Irq = @import("plic.zig").Irq;
 const Uart = @import("uart.zig").Uart;
@@ -9,6 +11,11 @@ const SLIP_END: u8 = 0o300;
 const SLIP_ESC: u8 = 0o333;
 const SLIP_ESC_END: u8 = 0o334;
 const SLIP_ESC_ESC: u8 = 0o335;
+
+const SLIPMUX_IP4 = .{ @as(u8, 0x45), @as(u8, 0x4f) };
+const SLIPMUX_IP6 = .{ @as(u8, 0x60), @as(u8, 0x6f) };
+const SLIPMUX_DBG: u8 = 0x0a;
+const SLIPMUX_COAP: u8 = 0xA9;
 
 const FrameHandler = fn (args: []const u8) void;
 
@@ -105,8 +112,26 @@ const Slip = struct {
 pub const SlipMux = struct {
     slip: Slip,
 
+    fn handle_coap(buf: []const u8) void {
+        // TODO: Checksuming
+        var par = zoap.Parser.init(buf) catch {
+            @panic("CoAP message parsing failed");
+        };
+    }
+
     fn handle_frame(buf: []const u8) void {
-        @panic("received frame");
+        if (buf.len == 0)
+            return;
+
+        const fst = buf[0];
+        if (fst >= SLIPMUX_IP4[0] and fst <= SLIPMUX_IP4[1])
+            @panic("support for IPv4 not implemented");
+        if (fst >= SLIPMUX_IP6[0] and fst <= SLIPMUX_IP6[1])
+            @panic("support for IPv6 not implemented");
+        if (fst == SLIPMUX_DBG)
+            @panic("support for diagnostic messages not implemented");
+        if (fst == SLIPMUX_COAP)
+            handle_coap(buf);
     }
 
     pub fn init(uart: Uart, plic: Plic, irq: Irq) !SlipMux {
