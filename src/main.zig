@@ -36,6 +36,9 @@ const plic0: Plic = Plic{
 const uart0: Uart = Uart{
     .base_addr = UART0_CTRL_ADDR,
 };
+const uart1: Uart = Uart{
+    .base_addr = UART1_CTRL_ADDR,
+};
 
 var stream = io.BufferedIO{
     .plic = plic0,
@@ -72,6 +75,8 @@ export fn init() void {
         // TODO: emit error message
         @panic("could not initialize stream");
     };
+
+    const smux = slipmux.SlipMux.init(uart1, plic0, UART1_IRQ);
 
     const in = stream.reader();
     const out = stream.writer();
