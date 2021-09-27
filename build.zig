@@ -27,13 +27,13 @@ pub fn build(b: *Builder) void {
 
     const mode = b.standardReleaseOptions();
 
-    const exe = b.addExecutable("main", "main.zig");
+    const exe = b.addExecutable("main", "src/main.zig");
     exe.linker_script = "fe310_g000.ld";
     exe.setTarget(target);
     exe.setBuildMode(mode);
 
-    exe.addCSourceFile("start.S", &[_][]const u8{});
-    exe.addCSourceFile("irq.S", &[_][]const u8{});
+    exe.addCSourceFile("src/start.S", &[_][]const u8{});
+    exe.addCSourceFile("src/irq.S", &[_][]const u8{});
 
     b.default_step.dependOn(&exe.step);
     b.installArtifact(exe);
