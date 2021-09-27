@@ -58,7 +58,7 @@ pub const Plic = struct {
         const idx = irq / 32;
         const off = @intCast(u5, irq % 32);
         const plic_enable = @intToPtr(*volatile u32, enable_addr + idx);
-        plic_enable.* = @intCast(u32, 1) << off;
+        plic_enable.* |= @intCast(u32, 1) << off;
     }
 
     pub fn invokeHandler(self: Plic) void {
