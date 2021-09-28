@@ -119,7 +119,9 @@ pub const SlipMux = struct {
         if (!crc.validCsum(buf))
             @panic("invalid 16-bit CRC FCS");
 
+        // Strip frame identifier and 16-bit CRC FCS.
         const msgBuf = buf[1..(buf.len - @sizeOf(u16))];
+
         var par = zoap.Parser.init(msgBuf) catch {
             @panic("CoAP message parsing failed");
         };
