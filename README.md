@@ -58,7 +58,7 @@ Afterwards, CoAP packets can be written to `localhost:2342` and will
 then be forwarded in the Slipmux CoAP framing format to the Zig code.
 For example, using `coap-client(1)` from [libcoap][libcoap github]:
 
-	$ coap-client -N -m get coap://[::1]:2342/.well-known/core
+	$ coap-client -N -m put coap://[::1]:2342/panic
 
 ## Development
 

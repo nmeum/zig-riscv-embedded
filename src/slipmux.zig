@@ -1,5 +1,6 @@
 const zoap = @import("zoap");
 const crc = @import("crc.zig");
+const std = @import("std");
 
 const Plic = @import("plic.zig").Plic;
 const Irq = @import("plic.zig").Irq;
@@ -125,8 +126,15 @@ pub const SlipMux = struct {
         var par = zoap.Parser.init(msgBuf) catch {
             @panic("CoAP message parsing failed");
         };
+        const uri = par.find_option(zoap.options.URIPath) catch {
+            @panic("Couldn't find URIPath option");
+        };
 
-        @panic("message parsed succesfully");
+        if (par.header.code.equal(zoap.codes.PUT)) {
+            if (std.mem.eql(u8, uri.value, "panic")) {
+                @panic("User requested a panic!");
+            }
+        }
     }
 
     fn handle_frame(buf: []const u8) void {
