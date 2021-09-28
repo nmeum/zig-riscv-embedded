@@ -81,17 +81,8 @@ export fn init() void {
     const in = stream.reader();
     const out = stream.writer();
 
-    out.writeAll("Type three characters: ") catch {
+    out.writeAll("Booting zig-riscv-embedded...\n") catch {
         @panic("writeAll failed");
-    };
-
-    var buf: [3]u8 = undefined;
-    const read = in.readAll(&buf) catch {
-        @panic("read failed");
-    };
-
-    out.print("\nYour characters: {}\n", .{buf}) catch {
-        @panic("print failed");
     };
 
     return;
