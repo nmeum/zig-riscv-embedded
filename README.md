@@ -45,10 +45,10 @@ This will create a output file for UART1 in `/tmp/out` which can be read
 using `tail -f /tmp/out`. Additionally, it will create a named pipe in
 `/tmp/input`. [Slipmux][slipmux] CoAP frames can be written to this named pipe
 and will afterwards be parsed by the Zig application code. For this
-purpose, a proxy is available in the `./coap-slip-proxy` subdirectory.
+purpose, a proxy is available in the `./coap-slip` subdirectory.
 The proxy is written in [Go][golang web] and can be compiled as follows:
 
-	$ cd coap-slip-proxy && go build -trimpath
+	$ cd coap-slip && go build -trimpath
 
 After compiling this proxy, it can be started as follows:
 
