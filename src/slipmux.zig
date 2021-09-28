@@ -1,4 +1,5 @@
 const zoap = @import("zoap");
+const crc = @import("crc.zig");
 
 const Plic = @import("plic.zig").Plic;
 const Irq = @import("plic.zig").Irq;
@@ -113,8 +114,13 @@ pub const SlipMux = struct {
     slip: Slip,
 
     fn handle_coap(buf: []const u8) void {
-        // TODO: Checksuming
-        var par = zoap.Parser.init(buf) catch {
+        if (buf.len <= 3)
+            @panic("CoAP message is too short");
+        if (!crc.validCsum(buf))
+            @panic("invalid 16-bit CRC FCS");
+
+        const msgBuf = buf[1..(buf.len - @sizeOf(u16))];
+        var par = zoap.Parser.init(msgBuf) catch {
             @panic("CoAP message parsing failed");
         };
 
@@ -133,7 +139,7 @@ pub const SlipMux = struct {
         if (fst == SLIPMUX_DBG)
             @panic("support for diagnostic messages not implemented");
         if (fst == SLIPMUX_COAP)
-            handle_coap(buf[1..]);
+            handle_coap(buf);
     }
 
     pub fn init(uart: Uart, plic: Plic, irq: Irq) !SlipMux {
