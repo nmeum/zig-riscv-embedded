@@ -1,0 +1,21 @@
+#!/bin/sh
+# From https://github.com/sifive/freedom-e-sdk/blob/c07ac84cbdd678963c4dc3ea34a68c47a8b53651/scripts/upload
+#
+# Copyright (c) 2019 SiFive, Inc.
+# Licensed under Apache2 and MIT licenses.
+
+set -e
+
+ELF_FILE=./zig-cache/bin/main
+export GDB_PORT=3333
+
+openocd -f openocd.cfg &
+
+gdb-multiarch $ELF_FILE --batch -ex "set remotetimeout 240" \
+	-ex "target extended-remote localhost:${GDB_PORT}" \
+	-ex "monitor reset halt" \
+	-ex "monitor flash protect 0 64 last off" \
+	-ex "thread apply all set \$pc=_enter" \
+	-ex "load" \
+	-ex "monitor resume" \
+	-ex "monitor shutdown" -ex "quit"
