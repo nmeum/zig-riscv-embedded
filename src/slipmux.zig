@@ -117,6 +117,8 @@ pub const SlipMux = struct {
         var par = zoap.Parser.init(buf) catch {
             @panic("CoAP message parsing failed");
         };
+
+        @panic("message parsed succesfully");
     }
 
     fn handle_frame(buf: []const u8) void {
@@ -131,7 +133,7 @@ pub const SlipMux = struct {
         if (fst == SLIPMUX_DBG)
             @panic("support for diagnostic messages not implemented");
         if (fst == SLIPMUX_COAP)
-            handle_coap(buf);
+            handle_coap(buf[1..]);
     }
 
     pub fn init(uart: Uart, plic: Plic, irq: Irq) !SlipMux {
