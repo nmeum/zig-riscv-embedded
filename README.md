@@ -60,6 +60,19 @@ For example, using `coap-client(1)` from [libcoap][libcoap github]:
 
 	$ coap-client -N -m put coap://[::1]:2342/panic
 
+## Real Hardware
+
+The binary can be flashed to real hardware using OpenOCD and gdb. For
+this purpose, a shell script is provided. In order to flash a compiled
+binary run the following command:
+
+	$ ./flash
+
+To debug errors on real hardware start OpenOCD using `openocd -f
+openocd.cfg`. In a separate terminal start gdb as follows:
+
+	$ gdb-multiarch -ex 'target extended-remote :3333' zig-cache/bin/main
+
 ## Development
 
 A pre-commit git hook for checking if files are properly formated is
