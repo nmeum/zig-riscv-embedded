@@ -14,8 +14,9 @@ The mid-term goal is to provide somewhat usable abstractions for
 interacting with the UART and the PLIC. These abstractions are currently
 being developed in `uart.zig` and `plic.zig`. Based on these
 abstractions, an implementation of Zig input and output streams is being
-developed in `streams.zig`. The file `main.zig` uses the aforementioned
-abstractions to output `Hello, World!`.
+developed in `io.zig`. These abstractions are then used to implement a
+simple [slipmux][slipmux]-based [CoAP][coap] implementation based on the
+[zoap][zoap github] Zig library.
 
 ## Building
 
@@ -42,7 +43,7 @@ be booted using the [qemu][qemu website] `sifive_e` machine as follows:
 
 This will create a output file for UART1 in `/tmp/out` which can be read
 using `tail -f /tmp/out`. Additionally, it will create a named pipe in
-`/tmp/input`. [Slipmux] CoAP frames can be written to this named pipe
+`/tmp/input`. [Slipmux][slipmux] CoAP frames can be written to this named pipe
 and will afterwards be parsed by the Zig application code. For this
 purpose, a proxy is available in the `./coap-slip-proxy` subdirectory.
 The proxy is written in [Go][golang web] and can be compiled as follows:
@@ -81,5 +82,7 @@ for more information.
 [hifive1 website]: https://www.sifive.com/boards/hifive1
 [riot fe310]: https://github.com/RIOT-OS/RIOT/tree/master/cpu/fe310
 [slipmux]: https://datatracker.ietf.org/doc/html/draft-bormann-t2trg-slipmux-03
+[coap]: https://datatracker.ietf.org/doc/html/rfc7252
 [libcoap github]: https://github.com/obgm/libcoap
 [golang web]: https://golang.org
+[zoap github]: https://github.com/nmeum/zoap
