@@ -37,13 +37,27 @@ The generated ELF binary can be flashed on the HiFive1 and it can also
 be booted using the [qemu][qemu website] `sifive_e` machine as follows:
 
 	$ mkfifo /tmp/input
-	$ qemu-system-riscv32 -M sifive_e -nographic -kernel zig-cache/bin/main -serial file:/tmp/out -serial pipe:/tmp/input
-
+	$ qemu-system-riscv32 -M sifive_e -nographic -kernel zig-cache/bin/main \
+		-serial file:/tmp/out -serial pipe:/tmp/input
 
 This will create a output file for UART1 in `/tmp/out` which can be read
 using `tail -f /tmp/out`. Additionally, it will create a named pipe in
 `/tmp/input`. [Slipmux] CoAP frames can be written to this named pipe
-and will afterwards be parsed by the Zig application code.
+and will afterwards be parsed by the Zig application code. For this
+purpose, a proxy is available in the `./coap-slip-proxy` subdirectory.
+The proxy is written in [Go][golang web] and can be compiled as follows:
+
+	$ cd coap-slip-proxy && go build -trimpath
+
+After compiling this proxy, it can be started as follows:
+
+	$ ./coap-slip :2342 >> /tmp/input
+
+Afterwards, CoAP packets can be written to `localhost:2342` and will
+then be forwarded in the Slipmux CoAP framing format to the Zig code.
+For example, using `coap-client(1)` from [libcoap][libcoap github]:
+
+	$ coap-client -N -m get coap://[::1]:2342/.well-known/core
 
 ## Development
 
@@ -67,3 +81,5 @@ for more information.
 [hifive1 website]: https://www.sifive.com/boards/hifive1
 [riot fe310]: https://github.com/RIOT-OS/RIOT/tree/master/cpu/fe310
 [slipmux]: https://datatracker.ietf.org/doc/html/draft-bormann-t2trg-slipmux-03
+[libcoap github]: https://github.com/obgm/libcoap
+[golang web]: https://golang.org
