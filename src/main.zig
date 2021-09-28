@@ -61,10 +61,14 @@ export fn level1IRQHandler() void {
         : [ret] "=r" (-> u32)
     );
 
-    if ((mcause >> MCAUSE_IRQ_MASK) != 1)
+    const expcode: u32 = mcause & 0x0fff;
+    if ((mcause >> MCAUSE_IRQ_MASK) == 1) {
+        plic0.invokeHandler();
+    } else {
+        if (expcode == 3) // breakpoint
+            return;
         @panic("unexpected trap"); // not an interrupt
-
-    plic0.invokeHandler();
+    }
 }
 
 export fn init() void {
