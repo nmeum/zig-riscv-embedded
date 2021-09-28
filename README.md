@@ -31,22 +31,19 @@ If the image should be booted on real hardware, building in the
 
 	$ zig build -Drelease-small
 
-## Booting
+## Usage
 
-The generated ELF binary can be booted using `hifive-vp` from
-[riscv-vp][riscv-vp GitHub]. Alternatively, the [qemu][qemu website]
-`sifive_e` machine also works.
+The generated ELF binary can be flashed on the HiFive1 and it can also
+be booted using the [qemu][qemu website] `sifive_e` machine as follows:
 
-Using riscv-vp:
+	$ mkfifo /tmp/input
+	$ qemu-system-riscv32 -M sifive_e -nographic -kernel zig-cache/bin/main -serial file:/tmp/out -serial pipe:/tmp/input
 
-	$ hifive-vp zig-cache/bin/main
 
-Using qemu:
-
-	$ qemu-system-riscv32 -M sifive_e -nographic -kernel zig-cache/bin/main
-
-The application should also boot successfully on the HiFive1, though I
-haven't gotten around to testing it yet.
+This will create a output file for UART1 in `/tmp/out` which can be read
+using `tail -f /tmp/out`. Additionally, it will create a named pipe in
+`/tmp/input`. [Slipmux] CoAP frames can be written to this named pipe
+and will afterwards be parsed by the Zig application code.
 
 ## Development
 
@@ -65,8 +62,8 @@ for more information.
 
 [zig website]: https://ziglang.org/
 [zig build modes]: https://ziglang.org/documentation/master/#Build-Mode
-[riscv-vp GitHub]: https://github.com/agra-uni-bremen/riscv-vp
 [qemu website]: https://www.qemu.org/
 [fe310 manual]: https://static.dev.sifive.com/FE310-G000.pdf
 [hifive1 website]: https://www.sifive.com/boards/hifive1
 [riot fe310]: https://github.com/RIOT-OS/RIOT/tree/master/cpu/fe310
+[slipmux]: https://datatracker.ietf.org/doc/html/draft-bormann-t2trg-slipmux-03
