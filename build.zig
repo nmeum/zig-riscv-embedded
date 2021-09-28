@@ -37,7 +37,7 @@ pub fn build(b: *Builder) void {
 
     exe.addPackage(std.build.Pkg {
         .name = "zoap",
-        .path = "./zoap/src/main.zig",
+        .path = "./zoap/src/zoap.zig",
     });
 
     b.default_step.dependOn(&exe.step);
