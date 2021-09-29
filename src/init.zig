@@ -46,8 +46,12 @@ export fn level1IRQHandler() void {
 
 export fn init() void {
     periph.init();
-    console.init();
+    console.init() catch |err| {
+        @panic(@errorName(err));
+    };
 
-    console.debug("Booting zig-riscv-embedded...\n", .{});
-    main.main() catch return;
+    console.print("Booting zig-riscv-embedded...\n", .{});
+    main.main() catch |err| {
+        @panic(@errorName(err));
+    };
 }
