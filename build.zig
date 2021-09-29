@@ -34,6 +34,7 @@ pub fn build(b: *Builder) void {
 
     exe.addCSourceFile("src/start.S", &[_][]const u8{});
     exe.addCSourceFile("src/irq.S", &[_][]const u8{});
+    exe.addCSourceFile("src/clock.c", &[_][]const u8{});
 
     exe.addPackage(std.build.Pkg {
         .name = "zoap",
