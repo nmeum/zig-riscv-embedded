@@ -14,53 +14,15 @@
 // with this program. If not, see <http://www.gnu.org/licenses/>.
 
 const io = @import("io.zig");
-const slipmux = @import("slipmux.zig");
-const gpio = @import("gpio.zig");
-const Plic = @import("plic.zig").Plic;
-const Uart = @import("uart.zig").Uart;
+const periph = @import("periph.zig");
 const StackTrace = @import("std").builtin.StackTrace;
-
-// Addresses of FE310 peripherals.
-const UART0_CTRL_ADDR: usize = 0x10013000;
-const UART1_CTRL_ADDR: usize = 0x10023000;
-const PLIC_CTRL_ADDR: usize = 0x0C000000;
-const GPIO_CTRL_ADDR: usize = 0x10012000;
-
-// IRQ lines used by FE310 peripherals.
-const UART0_IRQ = 3;
-const UART1_IRQ = 4;
-
-const MCAUSE_IRQ_MASK: u32 = 31;
-
-const gpio0 = gpio.Gpio{
-    .base_addr = GPIO_CTRL_ADDR,
-};
-const plic0 = Plic{
-    .base_addr = PLIC_CTRL_ADDR,
-};
-
-const uart0 = Uart{
-    .base_addr = UART0_CTRL_ADDR,
-    .rx_pin = gpio.pin(0, 16),
-    .tx_pin = gpio.pin(0, 17),
-};
-const uart1 = Uart{
-    .base_addr = UART1_CTRL_ADDR,
-    .rx_pin = gpio.pin(0, 18),
-    .tx_pin = gpio.pin(0, 23),
-};
-
-var stream = io.BufferedIO{
-    .plic = plic0,
-    .uart = uart0,
-};
 
 pub fn panic(msg: []const u8, error_return_trace: ?*StackTrace) noreturn {
     // copied from the default_panic implementation
     @setCold(true);
 
-    const ustream = io.UnbufferedWriter.init(uart0);
-    ustream.print("PANIC: {}\n", .{msg}) catch void;
+    const writer = io.UnbufferedWriter.init(periph.uart0);
+    writer.print("PANIC: {}\n", .{msg}) catch void;
 
     @breakpoint();
     while (true) {}
@@ -72,8 +34,8 @@ export fn level1IRQHandler() void {
     );
 
     const expcode: u32 = mcause & 0x0fff;
-    if ((mcause >> MCAUSE_IRQ_MASK) == 1) {
-        plic0.invokeHandler();
+    if ((mcause >> 31) == 1) {
+        periph.plic0.invokeHandler();
     } else {
         if (expcode == 3) // breakpoint
             return;
@@ -82,22 +44,10 @@ export fn level1IRQHandler() void {
 }
 
 export fn init() void {
-    // Threshold is not reset to zero by default.
-    plic0.setThreshold(0);
+    periph.periph_init();
 
-    stream.init(UART0_IRQ) catch |err| {
-        // TODO: emit error message
-        @panic("could not initialize stream");
-    };
-
-    const smux = slipmux.SlipMux.init(uart1, plic0, UART1_IRQ);
-
-    const in = stream.reader();
-    const out = stream.writer();
-
-    out.writeAll("Booting zig-riscv-embedded...\n") catch {
-        @panic("writeAll failed");
-    };
+    const writer = io.UnbufferedWriter.init(periph.uart0);
+    writer.print("Hello, World!\n", .{}) catch void;
 
     return;
 }

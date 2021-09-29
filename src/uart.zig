@@ -110,7 +110,7 @@ pub const Uart = struct {
         return (txdata & (1 << 31)) != 0;
     }
 
-    pub fn init(self: *const Uart, ugpio: *const gpio.Gpio, baud: u32) void {
+    pub fn init(self: Uart, ugpio: gpio.Gpio, baud: u32) void {
         // Enable the UART at the given baud rate
         self.writeWord(UART_REG_DIV, CLK_FREQ / baud);
 
