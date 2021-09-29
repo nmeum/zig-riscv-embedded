@@ -18,6 +18,13 @@ const periph = @import("periph.zig");
 const main = @import("main.zig");
 const StackTrace = @import("std").builtin.StackTrace;
 
+// Bitmasks for modifying mcause CSR
+const MCAUSE_EXPCODE = 0x0fff;
+const MCAUSE_INT = 0x80000000;
+
+// Exception codes
+const EXP_BREAKPOINT = 3;
+
 pub fn panic(msg: []const u8, error_return_trace: ?*StackTrace) noreturn {
     // Copied from the default_panic implementation
     @setCold(true);
@@ -34,14 +41,14 @@ export fn level1IRQHandler() void {
         : [ret] "=r" (-> u32)
     );
 
-    const expcode: u32 = mcause & 0x0fff;
-    if ((mcause >> 31) == 1) {
+    const expcode: u32 = mcause & MCAUSE_EXPCODE;
+    if ((mcause & MCAUSE_INT) == MCAUSE_INT) {
         periph.plic0.invokeHandler();
     } else {
-        if (expcode == 3) { // breakpoint
+        if (expcode == EXP_BREAKPOINT) {
             while (true) {}
         }
-        @panic("unexpected trap"); // not an interrupt
+        @panic("unexpected trap");
     }
 }
 
