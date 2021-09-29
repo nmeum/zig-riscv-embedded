@@ -112,7 +112,7 @@ pub const Uart = struct {
 
     pub fn init(self: *const Uart, ugpio: *const gpio.Gpio, baud: u32) void {
         // Enable the UART at the given baud rate
-        self.writeWord(UART_REG_DIV, baud / CLK_FREQ);
+        self.writeWord(UART_REG_DIV, CLK_FREQ / baud);
 
         // Enable transmission
         self.writeTxctrl(txctrl{
