@@ -25,6 +25,7 @@ const CLK_FREQ = 16 * 1000 * 1000; // 16 MHZ
 pub const ConfFlags = struct {
     tx: bool,
     rx: bool,
+    cnt: u3 = 1,
 };
 
 pub const Uart = struct {
@@ -122,14 +123,16 @@ pub const Uart = struct {
         // Enable the UART at the given baud rate
         self.writeWord(Reg.UART_REG_DIV, CLK_FREQ / baud);
 
-        if (mode.tx)
-            self.writeTxctrl(txctrl{
-                .txen = true,
-                .nstop = 0,
-                .txcnt = 1,
-            });
-        if (mode.rx)
-            self.writeRxctrl(rxctrl{ .rxen = true, .rxcnt = 1 });
+        self.writeTxctrl(txctrl{
+            .txen = mode.tx,
+            .nstop = 0,
+            .txcnt = mode.cnt,
+        });
+
+        self.writeRxctrl(rxctrl{
+            .rxen = mode.rx,
+            .rxcnt = mode.cnt,
+        });
 
         if (mode.tx)
             ugpio.setIOFCtrl(self.tx_pin, 0);
