@@ -41,7 +41,7 @@ const fcstab = [256]u16{
 fn calcCsum(data: []const u8) u16 {
     var initByte: u16 = FCS_INIT;
     for (data) |b, _| {
-        initByte = (initByte >> 8) ^ fcstab[(initByte^@as(u16, b))&0xff];
+        initByte = (initByte >> 8) ^ fcstab[(initByte ^ @as(u16, b)) & 0xff];
     }
 
     return initByte;

@@ -5,7 +5,7 @@ pub const IOF_SEL: usize = 0x3C;
 pub const Pin = u5;
 
 pub fn pin(x: Pin, y: Pin) Pin {
-    return x|y;
+    return x | y;
 }
 
 pub const Gpio = struct {
