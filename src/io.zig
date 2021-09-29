@@ -129,8 +129,8 @@ pub const BufferedIO = struct {
         return .{ .context = self };
     }
 
-    pub fn init(self: *Self, irq: Irq) !void {
-        try self.plic.registerHandler(irq, irqHandler, self);
+    pub fn init(self: *Self) !void {
+        try self.plic.registerHandler(self.uart.irq, irqHandler, self);
 
         self.uart.writeIe(Uart.ie{
             .txwm = false,

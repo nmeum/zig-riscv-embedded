@@ -27,7 +27,7 @@ pub fn build(b: *Builder) void {
 
     const mode = b.standardReleaseOptions();
 
-    const exe = b.addExecutable("main", "src/main.zig");
+    const exe = b.addExecutable("main", "src/init.zig");
     exe.linker_script = "fe310_g000.ld";
     exe.setTarget(target);
     exe.setBuildMode(mode);

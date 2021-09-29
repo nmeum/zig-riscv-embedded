@@ -26,10 +26,6 @@ const UART1_CTRL_ADDR: usize = 0x10023000;
 const PLIC_CTRL_ADDR: usize = 0x0C000000;
 const GPIO_CTRL_ADDR: usize = 0x10012000;
 
-// IRQ lines used by FE310 peripherals.
-const UART0_IRQ = 3;
-const UART1_IRQ = 4;
-
 pub const gpio0 = gpio.Gpio{
     .base_addr = GPIO_CTRL_ADDR,
 };
@@ -40,11 +36,13 @@ pub const uart0 = uart.Uart{
     .base_addr = UART0_CTRL_ADDR,
     .rx_pin = gpio.pin(0, 16),
     .tx_pin = gpio.pin(0, 17),
+    .irq = 3,
 };
 pub const uart1 = uart.Uart{
     .base_addr = UART1_CTRL_ADDR,
     .rx_pin = gpio.pin(0, 18),
     .tx_pin = gpio.pin(0, 23),
+    .irq = 4,
 };
 
 pub fn periph_init() void {

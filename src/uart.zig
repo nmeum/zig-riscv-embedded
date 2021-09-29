@@ -14,6 +14,7 @@
 // with this program. If not, see <http://www.gnu.org/licenses/>.
 
 const gpio = @import("gpio.zig");
+const plic = @import("plic.zig");
 
 // Offsets for memory mapped UART control registers.
 const UART_REG_TXFIFO: usize = 0x00;
@@ -34,6 +35,7 @@ pub const Uart = struct {
     base_addr: usize,
     rx_pin: gpio.Pin,
     tx_pin: gpio.Pin,
+    irq: plic.Irq,
 
     pub const FIFO_DEPTH: usize = 8;
 
