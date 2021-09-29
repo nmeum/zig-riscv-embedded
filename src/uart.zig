@@ -123,10 +123,6 @@ pub const Uart = struct {
             .txcnt = 1,
         });
 
-        // Configure IOF_EN and IOF_SEL for the UART transmit pin
-        const sel = ugpio.readWord(gpio.IOF_SEL);
-        ugpio.writeWord(gpio.IOF_SEL, sel & ~(@as(u32, 1) << self.tx_pin));
-        const en = ugpio.readWord(gpio.IOF_EN);
-        ugpio.writeWord(gpio.IOF_EN, en | (@as(u32, 1) << self.tx_pin));
+        ugpio.setIOFCtrl(self.tx_pin, 0);
     }
 };
