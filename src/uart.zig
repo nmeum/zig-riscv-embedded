@@ -16,9 +16,6 @@
 const gpio = @import("gpio.zig");
 const plic = @import("plic.zig");
 
-const UART_TX_WATERMARK: u3 = 1;
-const UART_RX_WATERMARK: u3 = 1;
-
 // TODO: Extract this value using the PRCI.
 const CLK_FREQ = 16 * 1000 * 1000; // 16 MHZ
 
