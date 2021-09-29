@@ -17,9 +17,6 @@ const gpio = @import("gpio.zig");
 const plic = @import("plic.zig");
 const uart = @import("uart.zig");
 
-// Baud rate for UART0 and UART1.
-const BAUD_RATE = 115200;
-
 // Addresses of FE310 peripherals.
 const UART0_CTRL_ADDR: usize = 0x10013000;
 const UART1_CTRL_ADDR: usize = 0x10023000;
@@ -49,6 +46,6 @@ pub fn init() void {
     plic0.init();
 
     // Initialize both uarts.
-    uart0.init(gpio0, BAUD_RATE, .{ .tx = true, .rx = false });
-    uart1.init(gpio0, BAUD_RATE, .{ .tx = true, .rx = true });
+    uart0.init(gpio0, .{ .tx = true, .rx = false });
+    uart1.init(gpio0, .{ .tx = true, .rx = true });
 }

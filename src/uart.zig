@@ -23,6 +23,7 @@ pub const ConfFlags = struct {
     tx: bool,
     rx: bool,
     cnt: u3 = 1,
+    baud: u32 = 115200,
 };
 
 pub const Uart = struct {
@@ -116,24 +117,24 @@ pub const Uart = struct {
         return (txdata & (1 << 31)) != 0;
     }
 
-    pub fn init(self: Uart, ugpio: gpio.Gpio, baud: u32, mode: ConfFlags) void {
+    pub fn init(self: Uart, ugpio: gpio.Gpio, conf: ConfFlags) void {
         // Enable the UART at the given baud rate
-        self.writeWord(Reg.DIV, CLK_FREQ / baud);
+        self.writeWord(Reg.DIV, CLK_FREQ / conf.baud);
 
         self.writeTxctrl(txctrl{
-            .txen = mode.tx,
+            .txen = conf.tx,
             .nstop = 0,
-            .txcnt = mode.cnt,
+            .txcnt = conf.cnt,
         });
 
         self.writeRxctrl(rxctrl{
-            .rxen = mode.rx,
-            .rxcnt = mode.cnt,
+            .rxen = conf.rx,
+            .rxcnt = conf.cnt,
         });
 
-        if (mode.tx)
+        if (conf.tx)
             ugpio.setIOFCtrl(self.tx_pin, 0);
-        if (mode.rx)
+        if (conf.rx)
             ugpio.setIOFCtrl(self.rx_pin, 0);
     }
 };
