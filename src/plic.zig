@@ -41,6 +41,27 @@ pub const Plic = struct {
         plic_thres.* = threshold;
     }
 
+    fn setPriority(self: Plic, irq: Irq, prio: u3) void {
+        // Set PLIC priority for IRQ
+        const plic_prio = @intToPtr(*volatile u32, PLIC_CTRL_ADDR +
+            PLIC_PRIO_OFF + (@as(u32, irq) * @sizeOf(u32)));
+        plic_prio.* = @as(u32, prio);
+    }
+
+    fn setEnable(self: Plic, irq: Irq, enable: bool) void {
+        const idx = irq / 32;
+
+        const enable_addr: usize = PLIC_CTRL_ADDR + PLIC_ENABLE_OFF;
+        const plic_enable = @intToPtr(*volatile u32, enable_addr + (idx * @sizeOf(u32)));
+
+        const off = @intCast(u5, irq % 32);
+        if (enable) {
+            plic_enable.* |= @intCast(u32, 1) << off;
+        } else {
+            plic_enable.* &= ~(@intCast(u32, 1) << off);
+        }
+    }
+
     pub fn registerHandler(self: Plic, irq: Irq, func: Handler, ctx: ?*c_void) !void {
         if (irq >= irq_handlers.len)
             return error.OutOfBounds;
@@ -48,17 +69,8 @@ pub const Plic = struct {
         irq_handlers[irq] = func;
         irq_contexts[irq] = ctx;
 
-        // Set PLIC priority for IRQ
-        const plic_prio = @intToPtr(*volatile u32, PLIC_CTRL_ADDR +
-            PLIC_PRIO_OFF + (irq * @sizeOf(u32)));
-        plic_prio.* = 1;
-
-        // Enable interrupts for IRQ
-        const enable_addr: u32 = PLIC_CTRL_ADDR + PLIC_ENABLE_OFF;
-        const idx = irq / 32;
-        const off = @intCast(u5, irq % 32);
-        const plic_enable = @intToPtr(*volatile u32, enable_addr + idx);
-        plic_enable.* |= @intCast(u32, 1) << off;
+        self.setPriority(irq, 1);
+        self.setEnable(irq, true);
     }
 
     pub fn invokeHandler(self: Plic) void {
@@ -70,5 +82,16 @@ pub const Plic = struct {
 
         // Mark interrupt as completed
         claim_reg.* = irq;
+    }
+
+    pub fn init(self: Plic) void {
+        // Threshold is uninitialized by default.
+        self.setThreshold(0);
+
+        var i: Irq = 1;
+        while (i <= INTERRUPT_SOURCES) : (i += 1) {
+            self.setEnable(i, false);
+            self.setPriority(i, 0);
+        }
     }
 };

@@ -46,8 +46,7 @@ pub const uart1 = uart.Uart{
 };
 
 pub fn init() void {
-    // Threshold is not reset to zero by default.
-    plic0.setThreshold(0);
+    plic0.init();
 
     // Initialize both uarts.
     uart0.init(gpio0, BAUD_RATE);
