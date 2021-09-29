@@ -22,6 +22,11 @@ const UART_RX_WATERMARK: u3 = 1;
 // TODO: Extract this value using the PRCI.
 const CLK_FREQ = 16 * 1000 * 1000; // 16 MHZ
 
+pub const ConfFlags = struct {
+    tx: bool,
+    rx: bool,
+};
+
 pub const Uart = struct {
     base_addr: usize,
     rx_pin: gpio.Pin,
@@ -113,17 +118,22 @@ pub const Uart = struct {
         return (txdata & (1 << 31)) != 0;
     }
 
-    pub fn init(self: Uart, ugpio: gpio.Gpio, baud: u32) void {
+    pub fn init(self: Uart, ugpio: gpio.Gpio, baud: u32, mode: ConfFlags) void {
         // Enable the UART at the given baud rate
         self.writeWord(Reg.UART_REG_DIV, CLK_FREQ / baud);
 
-        // Enable transmission
-        self.writeTxctrl(txctrl{
-            .txen = true,
-            .nstop = 0,
-            .txcnt = 1,
-        });
+        if (mode.tx)
+            self.writeTxctrl(txctrl{
+                .txen = true,
+                .nstop = 0,
+                .txcnt = 1,
+            });
+        if (mode.rx)
+            self.writeRxctrl(rxctrl{ .rxen = true, .rxcnt = 1 });
 
-        ugpio.setIOFCtrl(self.tx_pin, 0);
+        if (mode.tx)
+            ugpio.setIOFCtrl(self.tx_pin, 0);
+        if (mode.rx)
+            ugpio.setIOFCtrl(self.rx_pin, 0);
     }
 };

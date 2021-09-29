@@ -49,6 +49,6 @@ pub fn init() void {
     plic0.init();
 
     // Initialize both uarts.
-    uart0.init(gpio0, BAUD_RATE);
-    uart1.init(gpio0, BAUD_RATE);
+    uart0.init(gpio0, BAUD_RATE, .{ .tx = true, .rx = false });
+    uart1.init(gpio0, BAUD_RATE, .{ .tx = true, .rx = true });
 }
