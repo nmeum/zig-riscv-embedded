@@ -16,15 +16,6 @@
 const gpio = @import("gpio.zig");
 const plic = @import("plic.zig");
 
-// Offsets for memory mapped UART control registers.
-const UART_REG_TXFIFO: usize = 0x00;
-const UART_REG_RXFIFO: usize = 0x04;
-const UART_REG_TXCTRL: usize = 0x08;
-const UART_REG_RXCTRL: usize = 0x0c;
-const UART_REG_IE: usize = 0x10;
-const UART_REG_IP: usize = 0x14;
-const UART_REG_DIV: usize = 0x18;
-
 const UART_TX_WATERMARK: u3 = 1;
 const UART_RX_WATERMARK: u3 = 1;
 
@@ -36,6 +27,16 @@ pub const Uart = struct {
     rx_pin: gpio.Pin,
     tx_pin: gpio.Pin,
     irq: plic.Irq,
+
+    const Reg = enum(usize) {
+        UART_REG_TXFIFO = 0x00,
+        UART_REG_RXFIFO = 0x04,
+        UART_REG_TXCTRL = 0x08,
+        UART_REG_RXCTRL = 0x0c,
+        UART_REG_IE = 0x10,
+        UART_REG_IP = 0x14,
+        UART_REG_DIV = 0x18,
+    };
 
     pub const FIFO_DEPTH: usize = 8;
 
@@ -60,45 +61,45 @@ pub const Uart = struct {
         _: u30 = undefined, // reserved
     };
 
-    fn writeWord(self: Uart, offset: usize, value: u32) void {
-        const ptr = @intToPtr(*volatile u32, self.base_addr + offset);
+    fn writeWord(self: Uart, reg: Reg, value: u32) void {
+        const ptr = @intToPtr(*volatile u32, self.base_addr + @enumToInt(reg));
         ptr.* = value;
     }
 
-    fn readWord(self: Uart, offset: usize) u32 {
-        const ptr = @intToPtr(*u32, self.base_addr + offset);
+    fn readWord(self: Uart, reg: Reg) u32 {
+        const ptr = @intToPtr(*u32, self.base_addr + @enumToInt(reg));
         return ptr.*;
     }
 
     pub fn writeTxctrl(self: Uart, ctrl: txctrl) void {
         var serialized = @bitCast(u32, ctrl);
-        self.writeWord(UART_REG_TXCTRL, serialized);
+        self.writeWord(Reg.UART_REG_TXCTRL, serialized);
     }
 
     pub fn writeRxctrl(self: Uart, ctrl: rxctrl) void {
         var serialized = @bitCast(u32, ctrl);
-        self.writeWord(UART_REG_RXCTRL, serialized);
+        self.writeWord(Reg.UART_REG_RXCTRL, serialized);
     }
 
     pub fn readIp(self: Uart) ie {
-        const ip = self.readWord(UART_REG_IP);
+        const ip = self.readWord(Reg.UART_REG_IP);
         return @bitCast(ie, ip);
     }
 
     pub fn writeIe(self: Uart, val: ie) void {
         var serialized = @bitCast(u32, val);
-        self.writeWord(UART_REG_IE, serialized);
+        self.writeWord(Reg.UART_REG_IE, serialized);
     }
 
     pub fn writeByte(self: Uart, value: u8) void {
-        self.writeWord(UART_REG_TXFIFO, value);
+        self.writeWord(Reg.UART_REG_TXFIFO, value);
     }
 
     // TODO: Use optional instead of error
     pub fn readByte(self: Uart) !u8 {
         // TODO: use a packed struct for the rxdata register, with
         // Zig 0.6 doing so unfourtunatly triggers a compiler bug.
-        const rxdata = self.readWord(UART_REG_RXFIFO);
+        const rxdata = self.readWord(Reg.UART_REG_RXFIFO);
 
         if ((rxdata & (1 << 31)) != 0)
             return error.EndOfStream;
@@ -108,13 +109,13 @@ pub const Uart = struct {
     pub fn isTxFull(self: Uart) bool {
         // TODO: use a packed struct for the txdata register, with
         // Zig 0.6 doing so unfourtunatly triggers a compiler bug.
-        const txdata = self.readWord(UART_REG_TXFIFO);
+        const txdata = self.readWord(Reg.UART_REG_TXFIFO);
         return (txdata & (1 << 31)) != 0;
     }
 
     pub fn init(self: Uart, ugpio: gpio.Gpio, baud: u32) void {
         // Enable the UART at the given baud rate
-        self.writeWord(UART_REG_DIV, CLK_FREQ / baud);
+        self.writeWord(Reg.UART_REG_DIV, CLK_FREQ / baud);
 
         // Enable transmission
         self.writeTxctrl(txctrl{
