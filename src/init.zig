@@ -45,7 +45,7 @@ export fn level1IRQHandler() void {
 }
 
 export fn init() void {
-    periph.periph_init();
+    periph.init();
     console.init();
 
     console.debug("Booting zig-riscv-embedded...\n", .{});

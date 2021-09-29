@@ -45,7 +45,7 @@ pub const uart1 = uart.Uart{
     .irq = 4,
 };
 
-pub fn periph_init() void {
+pub fn init() void {
     // Threshold is not reset to zero by default.
     plic0.setThreshold(0);
 
