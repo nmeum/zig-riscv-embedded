@@ -38,8 +38,9 @@ export fn level1IRQHandler() void {
     if ((mcause >> 31) == 1) {
         periph.plic0.invokeHandler();
     } else {
-        if (expcode == 3) // breakpoint
-            return;
+        if (expcode == 3) { // breakpoint
+            while (true) {}
+        }
         @panic("unexpected trap"); // not an interrupt
     }
 }
