@@ -15,6 +15,7 @@
 
 const io = @import("io.zig");
 const slipmux = @import("slipmux.zig");
+const gpio = @import("gpio.zig");
 const Plic = @import("plic.zig").Plic;
 const Uart = @import("uart.zig").Uart;
 const StackTrace = @import("std").builtin.StackTrace;
@@ -23,6 +24,7 @@ const StackTrace = @import("std").builtin.StackTrace;
 const UART0_CTRL_ADDR: usize = 0x10013000;
 const UART1_CTRL_ADDR: usize = 0x10023000;
 const PLIC_CTRL_ADDR: usize = 0x0C000000;
+const GPIO_CTRL_ADDR: usize = 0x10012000;
 
 // IRQ lines used by FE310 peripherals.
 const UART0_IRQ = 3;
@@ -30,14 +32,22 @@ const UART1_IRQ = 4;
 
 const MCAUSE_IRQ_MASK: u32 = 31;
 
-const plic0: Plic = Plic{
+const gpio0 = gpio.Gpio{
+    .base_addr = GPIO_CTRL_ADDR,
+};
+const plic0 = Plic{
     .base_addr = PLIC_CTRL_ADDR,
 };
-const uart0: Uart = Uart{
+
+const uart0 = Uart{
     .base_addr = UART0_CTRL_ADDR,
+    .rx_pin = gpio.pin(0, 16),
+    .tx_pin = gpio.pin(0, 17),
 };
-const uart1: Uart = Uart{
+const uart1 = Uart{
     .base_addr = UART1_CTRL_ADDR,
+    .rx_pin = gpio.pin(0, 18),
+    .tx_pin = gpio.pin(0, 23),
 };
 
 var stream = io.BufferedIO{

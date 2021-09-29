@@ -92,11 +92,6 @@ const Slip = struct {
     }
 
     pub fn init(uart: Uart, plic: Plic, irq: Irq, func: FrameHandler) !Slip {
-        uart.writeTxctrl(Uart.txctrl{
-            .txen = true,
-            .nstop = 0,
-            .txcnt = 1,
-        });
         uart.writeIe(Uart.ie{
             .txwm = false,
             .rxwm = true,

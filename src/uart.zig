@@ -13,6 +13,8 @@
 // You should have received a copy of the GNU General Public License along
 // with this program. If not, see <http://www.gnu.org/licenses/>.
 
+const gpio = @import("gpio.zig");
+
 // Offsets for memory mapped UART control registers.
 const UART_REG_TXFIFO: usize = 0x00;
 const UART_REG_RXFIFO: usize = 0x04;
@@ -25,8 +27,13 @@ const UART_REG_DIV: usize = 0x18;
 const UART_TX_WATERMARK: u3 = 1;
 const UART_RX_WATERMARK: u3 = 1;
 
+// TODO: Extract this value using the PRCI.
+const CLK_FREQ = 16 * 1000 * 1000; // 16 MHZ
+
 pub const Uart = struct {
     base_addr: usize,
+    rx_pin: gpio.Pin,
+    tx_pin: gpio.Pin,
 
     pub const FIFO_DEPTH: usize = 8;
 
@@ -103,5 +110,21 @@ pub const Uart = struct {
         return (txdata & (1 << 31)) != 0;
     }
 
-    // XX: Add is isRxEmpty?
+    pub fn init(self: *const Uart, ugpio: *const gpio.Gpio, baud: u32) void {
+        // Enable the UART at the given baud rate
+        self.writeWord(UART_REG_DIV, baud / CLK_FREQ);
+
+        // Enable transmission
+        self.writeTxctrl(txctrl{
+            .txen = true,
+            .nstop = 0,
+            .txcnt = 1,
+        });
+
+        // Configure IOF_EN and IOF_SEL for the UART transmit pin
+        const sel = ugpio.readWord(gpio.IOF_SEL);
+        ugpio.writeWord(gpio.IOF_SEL, sel & ~(@as(u32, 1) << self.tx_pin));
+        const en = ugpio.readWord(gpio.IOF_EN);
+        ugpio.writeWord(gpio.IOF_EN, en | (@as(u32, 1) << self.tx_pin));
+    }
 };

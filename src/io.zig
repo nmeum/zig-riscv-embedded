@@ -131,11 +131,6 @@ pub const BufferedIO = struct {
 
     pub fn init(self: *Self, irq: Irq) !void {
         try self.plic.registerHandler(irq, irqHandler, self);
-        self.uart.writeTxctrl(Uart.txctrl{
-            .txen = true,
-            .nstop = 0,
-            .txcnt = 1,
-        });
 
         self.uart.writeIe(Uart.ie{
             .txwm = false,
