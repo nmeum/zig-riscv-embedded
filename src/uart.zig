@@ -35,13 +35,13 @@ pub const Uart = struct {
     irq: plic.Irq,
 
     const Reg = enum(usize) {
-        UART_REG_TXFIFO = 0x00,
-        UART_REG_RXFIFO = 0x04,
-        UART_REG_TXCTRL = 0x08,
-        UART_REG_RXCTRL = 0x0c,
-        UART_REG_IE = 0x10,
-        UART_REG_IP = 0x14,
-        UART_REG_DIV = 0x18,
+        TXFIFO = 0x00,
+        RXFIFO = 0x04,
+        TXCTRL = 0x08,
+        RXCTRL = 0x0c,
+        IE = 0x10,
+        IP = 0x14,
+        DIV = 0x18,
     };
 
     pub const FIFO_DEPTH: usize = 8;
@@ -79,33 +79,33 @@ pub const Uart = struct {
 
     pub fn writeTxctrl(self: Uart, ctrl: txctrl) void {
         var serialized = @bitCast(u32, ctrl);
-        self.writeWord(Reg.UART_REG_TXCTRL, serialized);
+        self.writeWord(Reg.TXCTRL, serialized);
     }
 
     pub fn writeRxctrl(self: Uart, ctrl: rxctrl) void {
         var serialized = @bitCast(u32, ctrl);
-        self.writeWord(Reg.UART_REG_RXCTRL, serialized);
+        self.writeWord(Reg.RXCTRL, serialized);
     }
 
     pub fn readIp(self: Uart) ie {
-        const ip = self.readWord(Reg.UART_REG_IP);
+        const ip = self.readWord(Reg.IP);
         return @bitCast(ie, ip);
     }
 
     pub fn writeIe(self: Uart, val: ie) void {
         var serialized = @bitCast(u32, val);
-        self.writeWord(Reg.UART_REG_IE, serialized);
+        self.writeWord(Reg.IE, serialized);
     }
 
     pub fn writeByte(self: Uart, value: u8) void {
-        self.writeWord(Reg.UART_REG_TXFIFO, value);
+        self.writeWord(Reg.TXFIFO, value);
     }
 
     // TODO: Use optional instead of error
     pub fn readByte(self: Uart) !u8 {
         // TODO: use a packed struct for the rxdata register, with
         // Zig 0.6 doing so unfourtunatly triggers a compiler bug.
-        const rxdata = self.readWord(Reg.UART_REG_RXFIFO);
+        const rxdata = self.readWord(Reg.RXFIFO);
 
         if ((rxdata & (1 << 31)) != 0)
             return error.EndOfStream;
@@ -115,13 +115,13 @@ pub const Uart = struct {
     pub fn isTxFull(self: Uart) bool {
         // TODO: use a packed struct for the txdata register, with
         // Zig 0.6 doing so unfourtunatly triggers a compiler bug.
-        const txdata = self.readWord(Reg.UART_REG_TXFIFO);
+        const txdata = self.readWord(Reg.TXFIFO);
         return (txdata & (1 << 31)) != 0;
     }
 
     pub fn init(self: Uart, ugpio: gpio.Gpio, baud: u32, mode: ConfFlags) void {
         // Enable the UART at the given baud rate
-        self.writeWord(Reg.UART_REG_DIV, CLK_FREQ / baud);
+        self.writeWord(Reg.DIV, CLK_FREQ / baud);
 
         self.writeTxctrl(txctrl{
             .txen = mode.tx,
