@@ -3,7 +3,6 @@ const crc = @import("crc.zig");
 const std = @import("std");
 
 const Plic = @import("plic.zig").Plic;
-const Irq = @import("plic.zig").Irq;
 const Uart = @import("uart.zig").Uart;
 
 // SLIP (as defined in RFC 1055) doesn't specify an MTU.
@@ -91,7 +90,7 @@ const Slip = struct {
         }
     }
 
-    pub fn init(uart: Uart, plic: Plic, irq: Irq, func: FrameHandler) !Slip {
+    pub fn init(uart: Uart, plic: Plic, func: FrameHandler) !Slip {
         uart.writeIe(Uart.ie{
             .txwm = false,
             .rxwm = true,
@@ -101,7 +100,7 @@ const Slip = struct {
             .uart = uart,
             .handler = func,
         };
-        try plic.registerHandler(irq, irqHandler, &self);
+        try plic.registerHandler(uart.irq, irqHandler, &self);
         return self;
     }
 };
@@ -147,8 +146,8 @@ pub const SlipMux = struct {
             handle_coap(buf);
     }
 
-    pub fn init(uart: Uart, plic: Plic, irq: Irq) !SlipMux {
-        var slip = try Slip.init(uart, plic, irq, handle_frame);
+    pub fn init(uart: Uart, plic: Plic) !SlipMux {
+        var slip = try Slip.init(uart, plic, handle_frame);
         return SlipMux{
             .slip = slip,
         };
