@@ -87,6 +87,8 @@ const Slip = struct {
             rxIrqHandler(self) catch {
                 @panic("rx handler failed");
             };
+        } else if (ip.txwm) {
+            @panic("unexpected pending transmit");
         }
     }
 

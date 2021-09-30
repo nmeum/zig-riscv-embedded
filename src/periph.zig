@@ -47,5 +47,5 @@ pub fn init() void {
 
     // Initialize both uarts.
     uart0.init(gpio0, .{ .tx = true, .rx = false });
-    uart1.init(gpio0, .{ .tx = true, .rx = true });
+    uart1.init(gpio0, .{ .tx = false, .rx = true });
 }
