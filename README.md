@@ -21,11 +21,22 @@ the CoAP framing format from [draft-bormann-t2trg-slipmux-03][slipmux]
 (Slipmux). A proxy for converting CoAP packets, as received over UDP, to this
 framing format is available in the `./coap-slip` subdirectory.
 
+## Dependencies
+
+* Zig `0.7.1`
+* [Go][golang] for compiling the `coap-slip` proxy
+* QEMU (`qemu-system-riscv32`) for emulating a HiFive1
+* A CoAP client, e.g. `coap-client(1)` from [libcoap][libcoap github]
+
+For flashing to real hardware, the following software is required:
+
+* [riscv-openocd][riscv-openocd]
+* [GDB][gdb web] with 32-bit RISC-V support
+
 ## Building
 
-The code builds successfully with Zig `0.7.1`. The Zig build system is
-used for building the application, the configuration is available in
-`build.zig`. To build the application run:
+The Zig build system is used for building the application, the
+configuration is available in `build.zig`. To build the application run:
 
 	$ zig build
 
@@ -49,8 +60,8 @@ read using `tail -f /tmp/out`. Additionally, it will create a named pipe
 in `/tmp/input`. Slipmux CoAP frames can be written to this named pipe
 and will afterwards be parsed by the Zig application code. For
 converting CoAP packets to Slipmux frames, a proxy is available in the
-`./coap-slip` subdirectory. The proxy is written in [Go][golang web] and
-can be compiled as follows:
+`./coap-slip` subdirectory. The proxy is written in Go and can be compiled
+as follows:
 
 	$ cd coap-slip && go build -trimpath
 
@@ -104,3 +115,5 @@ for more information.
 [libcoap github]: https://github.com/obgm/libcoap
 [golang web]: https://golang.org
 [zoap github]: https://github.com/nmeum/zoap
+[riscv-openocd]: https://github.com/riscv/riscv-openocd
+[gdb web]: https://www.gnu.org/software/gdb/
