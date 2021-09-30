@@ -6,20 +6,10 @@ const console = @import("console.zig");
 const Plic = @import("plic.zig").Plic;
 const Uart = @import("uart.zig").Uart;
 
+const FrameHandler = fn (buf: []const u8) void;
+
 // SLIP (as defined in RFC 1055) doesn't specify an MTU.
 const SLIP_MTU: u32 = 1500;
-
-const SLIP_END: u8 = 0o300;
-const SLIP_ESC: u8 = 0o333;
-const SLIP_ESC_END: u8 = 0o334;
-const SLIP_ESC_ESC: u8 = 0o335;
-
-const SLIPMUX_IP4 = .{ @as(u8, 0x45), @as(u8, 0x4f) };
-const SLIPMUX_IP6 = .{ @as(u8, 0x60), @as(u8, 0x6f) };
-const SLIPMUX_DBG: u8 = 0x0a;
-const SLIPMUX_COAP: u8 = 0xA9;
-
-const FrameHandler = fn (args: []const u8) void;
 
 const Slip = struct {
     uart: Uart,
@@ -27,6 +17,11 @@ const Slip = struct {
     rcvbuf: [SLIP_MTU]u8 = undefined,
     rcvpos: usize = 0,
     prev_esc: bool = false,
+
+    const SLIP_END: u8 = 0o300;
+    const SLIP_ESC: u8 = 0o333;
+    const SLIP_ESC_END: u8 = 0o334;
+    const SLIP_ESC_ESC: u8 = 0o335;
 
     fn writeByte(self: *Slip, byte: u8) void {
         self.rcvbuf[self.rcvpos] = byte;
@@ -111,6 +106,11 @@ const Slip = struct {
 pub const SlipMux = struct {
     slip: Slip,
 
+    const FRAME_IP4 = .{ @as(u8, 0x45), @as(u8, 0x4f) };
+    const FRAME_IP6 = .{ @as(u8, 0x60), @as(u8, 0x6f) };
+    const FRAME_DBG: u8 = 0x0a;
+    const FRAME_COAP: u8 = 0xA9;
+
     fn handleCoAP(buf: []const u8) !void {
         if (buf.len <= 3)
             return error.CoAPFrameTooShort;
@@ -132,16 +132,16 @@ pub const SlipMux = struct {
 
     fn dispatchFrame(buf: []const u8) !void {
         switch (buf[0]) {
-            SLIPMUX_IP4[0]...SLIPMUX_IP4[1] => {
+            FRAME_IP4[0]...FRAME_IP4[1] => {
                 return error.NoIPv4Support;
             },
-            SLIPMUX_IP6[0]...SLIPMUX_IP6[1] => {
+            FRAME_IP6[0]...FRAME_IP6[1] => {
                 return error.NoIPv6Support;
             },
-            SLIPMUX_DBG => {
+            FRAME_DBG => {
                 return error.NoDiagnosticSupport;
             },
-            SLIPMUX_COAP => {
+            FRAME_COAP => {
                 try handleCoAP(buf);
             },
             else => {
