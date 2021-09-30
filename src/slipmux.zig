@@ -47,11 +47,11 @@ const Slip = struct {
             SLIP_ESC_END, SLIP_ESC_ESC => {
                 var c: u8 = undefined;
                 if (self.prev_esc) {
-                    c = switch (byte) {
-                        SLIP_ESC_END => SLIP_END,
-                        SLIP_ESC_ESC => SLIP_ESC,
-                        else => unreachable,
-                    };
+                    switch (byte) {
+                        SLIP_ESC_END => c = SLIP_END,
+                        SLIP_ESC_ESC => c = SLIP_ESC,
+                        else => return error.UnknownEscapeSequence,
+                    }
                 } else {
                     c = byte;
                 }
