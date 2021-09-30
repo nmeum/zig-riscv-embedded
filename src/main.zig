@@ -11,7 +11,7 @@ const dispatcher = zoap.res.Dispatcher{
 };
 
 pub fn panicHandler(pkt: *zoap.pkt.Packet) void {
-    if (!pkt.header.code.equal(zoap.pkt.codes.PUT))
+    if (!pkt.header.code.equal(zoap.codes.PUT))
         return;
 
     @panic("User requested a panic!");
