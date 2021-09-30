@@ -8,15 +8,18 @@ This repository is intended to provide a simple sample application for
 experimenting with the Zig programming language on freestanding RISC-V.
 The application targets the [SiFive FE310-G000][fe310 manual] or more
 specifically the [HiFive 1][hifive1 website]. While possible to run the
-application on "real hardware", it can also be run using an emulator.
+application on "real hardware", it can also be run using QEMU.
 
-The mid-term goal is to provide somewhat usable abstractions for
-interacting with the UART and the PLIC. These abstractions are currently
-being developed in `uart.zig` and `plic.zig`. Based on these
-abstractions, an implementation of Zig input and output streams is being
-developed in `io.zig`. These abstractions are then used to implement a
-simple [slipmux][slipmux]-based [CoAP][coap] implementation based on the
-[zoap][zoap github] Zig library.
+## CoAP over Serial
+
+To experiment with external dependencies in Zig, this application
+provides a very bare bone implementation of the [Constrained Application Protocol][rfc7252]
+using [zoap][zoap github]. Since implementing an entire UDP/IP stack
+from scratch is out-of-scope, this repository transports raw CoAP packets
+directly over [SLIP][rfc1055]. For this purpose, this repository abuses
+the CoAP framing format from [draft-bormann-t2trg-slipmux-03][slipmux]
+(Slipmux). A proxy for converting CoAP packets, as received over UDP, to this
+framing format is available in the `./coap-slip` subdirectory.
 
 ## Building
 
@@ -41,12 +44,13 @@ be booted using the [qemu][qemu website] `sifive_e` machine as follows:
 	$ qemu-system-riscv32 -M sifive_e -nographic -kernel zig-cache/bin/main \
 		-serial file:/tmp/out -serial pipe:/tmp/input
 
-This will create a output file for UART1 in `/tmp/out` which can be read
-using `tail -f /tmp/out`. Additionally, it will create a named pipe in
-`/tmp/input`. [Slipmux][slipmux] CoAP frames can be written to this named pipe
-and will afterwards be parsed by the Zig application code. For this
-purpose, a proxy is available in the `./coap-slip` subdirectory.
-The proxy is written in [Go][golang web] and can be compiled as follows:
+This will create an output file for UART0 in `/tmp/out` which can be
+read using `tail -f /tmp/out`. Additionally, it will create a named pipe
+in `/tmp/input`. Slipmux CoAP frames can be written to this named pipe
+and will afterwards be parsed by the Zig application code. For
+converting CoAP packets to Slipmux frames, a proxy is available in the
+`./coap-slip` subdirectory. The proxy is written in [Go][golang web] and
+can be compiled as follows:
 
 	$ cd coap-slip && go build -trimpath
 
@@ -95,7 +99,8 @@ for more information.
 [hifive1 website]: https://www.sifive.com/boards/hifive1
 [riot fe310]: https://github.com/RIOT-OS/RIOT/tree/master/cpu/fe310
 [slipmux]: https://datatracker.ietf.org/doc/html/draft-bormann-t2trg-slipmux-03
-[coap]: https://datatracker.ietf.org/doc/html/rfc7252
+[rfc7252]: https://datatracker.ietf.org/doc/html/rfc7252
+[rfc1055]: https://datatracker.ietf.org/doc/html/draft-bormann-t2trg-slipmux-03
 [libcoap github]: https://github.com/obgm/libcoap
 [golang web]: https://golang.org
 [zoap github]: https://github.com/nmeum/zoap
