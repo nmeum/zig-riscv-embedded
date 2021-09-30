@@ -24,7 +24,7 @@ framing format is available in the `./coap-slip` subdirectory.
 ## Dependencies
 
 * Zig `0.7.1`
-* [Go][golang] for compiling the `coap-slip` proxy
+* [Go][golang web] for compiling the `coap-slip` proxy
 * QEMU (`qemu-system-riscv32`) for emulating a HiFive1
 * A CoAP client, e.g. `coap-client(1)` from [libcoap][libcoap github]
 
