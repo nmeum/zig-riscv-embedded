@@ -1,6 +1,7 @@
 const zoap = @import("zoap");
 const crc = @import("crc.zig");
 const std = @import("std");
+const console = @import("console.zig");
 
 const Plic = @import("plic.zig").Plic;
 const Uart = @import("uart.zig").Uart;
@@ -110,21 +111,17 @@ const Slip = struct {
 pub const SlipMux = struct {
     slip: Slip,
 
-    fn handle_coap(buf: []const u8) void {
+    fn handle_coap(buf: []const u8) !void {
         if (buf.len <= 3)
-            @panic("CoAP message is too short");
+            return error.CoAPFrameTooShort;
         if (!crc.validCsum(buf))
-            @panic("invalid 16-bit CRC FCS");
+            return error.InvalidChecksum;
 
         // Strip frame identifier and 16-bit CRC FCS.
         const msgBuf = buf[1..(buf.len - @sizeOf(u16))];
 
-        var par = zoap.Parser.init(msgBuf) catch {
-            @panic("CoAP message parsing failed");
-        };
-        const uri = par.find_option(zoap.options.URIPath) catch {
-            @panic("Couldn't find URIPath option");
-        };
+        var par = try zoap.Parser.init(msgBuf);
+        const uri = try par.find_option(zoap.options.URIPath);
 
         if (par.header.code.equal(zoap.codes.PUT)) {
             if (std.mem.eql(u8, uri.value, "panic")) {
@@ -133,19 +130,33 @@ pub const SlipMux = struct {
         }
     }
 
+    fn dispatch_frame(buf: []const u8) !void {
+        switch (buf[0]) {
+            SLIPMUX_IP4[0]...SLIPMUX_IP4[1] => {
+                return error.NoIPv4Support;
+            },
+            SLIPMUX_IP6[0]...SLIPMUX_IP6[1] => {
+                return error.NoIPv6Support;
+            },
+            SLIPMUX_DBG => {
+                return error.NoDiagnosticSupport;
+            },
+            SLIPMUX_COAP => {
+                try handle_coap(buf);
+            },
+            else => {
+                return error.UnknownFrame;
+            },
+        }
+    }
+
     fn handle_frame(buf: []const u8) void {
         if (buf.len == 0)
             return;
 
-        const fst = buf[0];
-        if (fst >= SLIPMUX_IP4[0] and fst <= SLIPMUX_IP4[1])
-            @panic("support for IPv4 not implemented");
-        if (fst >= SLIPMUX_IP6[0] and fst <= SLIPMUX_IP6[1])
-            @panic("support for IPv6 not implemented");
-        if (fst == SLIPMUX_DBG)
-            @panic("support for diagnostic messages not implemented");
-        if (fst == SLIPMUX_COAP)
-            handle_coap(buf);
+        dispatch_frame(buf) catch |err| {
+            console.print("handle_frame failed: {}\n", .{@errorName(err)});
+        };
     }
 
     pub fn init(uart: Uart, plic: Plic) !SlipMux {
