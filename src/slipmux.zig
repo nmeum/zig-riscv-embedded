@@ -6,7 +6,8 @@ const console = @import("console.zig");
 const Plic = @import("plic.zig").Plic;
 const Uart = @import("uart.zig").Uart;
 
-const FrameHandler = fn (buf: []const u8) void;
+const FrameHandler = fn (ctx: *c_void, buf: []const u8) void;
+const CoapHandler = fn (packet: *zoap.pkt.Packet) void;
 
 // SLIP (as defined in RFC 1055) doesn't specify an MTU.
 const SLIP_MTU: u32 = 1500;
@@ -14,6 +15,7 @@ const SLIP_MTU: u32 = 1500;
 const Slip = struct {
     uart: Uart,
     handler: FrameHandler,
+    context: *c_void,
     rcvbuf: [SLIP_MTU]u8 = undefined,
     rcvpos: usize = 0,
     prev_esc: bool = false,
@@ -39,7 +41,7 @@ const Slip = struct {
                 self.prev_esc = true;
             },
             SLIP_END => {
-                self.handler(self.rcvbuf[0..self.rcvpos]);
+                self.handler(self.context, self.rcvbuf[0..self.rcvpos]);
                 self.rcvpos = 0;
             },
             SLIP_ESC_END, SLIP_ESC_ESC => {
@@ -88,7 +90,7 @@ const Slip = struct {
         }
     }
 
-    pub fn init(uart: Uart, plic: Plic, func: FrameHandler) !Slip {
+    pub fn init(uart: Uart, plic: Plic, func: FrameHandler, ctx: *c_void) !Slip {
         uart.writeIe(Uart.ie{
             .txwm = false,
             .rxwm = true,
@@ -97,6 +99,7 @@ const Slip = struct {
         var self = Slip{
             .uart = uart,
             .handler = func,
+            .context = ctx,
         };
         try plic.registerHandler(uart.irq, irqHandler, &self);
         return self;
@@ -104,14 +107,14 @@ const Slip = struct {
 };
 
 pub const SlipMux = struct {
-    slip: Slip,
+    handler: CoapHandler,
 
     const FRAME_IP4 = .{ @as(u8, 0x45), @as(u8, 0x4f) };
     const FRAME_IP6 = .{ @as(u8, 0x60), @as(u8, 0x6f) };
     const FRAME_DBG: u8 = 0x0a;
     const FRAME_COAP: u8 = 0xA9;
 
-    fn handleCoAP(buf: []const u8) !void {
+    fn handleCoAP(self: *SlipMux, buf: []const u8) !void {
         if (buf.len <= 3)
             return error.CoAPFrameTooShort;
         if (!crc.validCsum(buf))
@@ -120,17 +123,11 @@ pub const SlipMux = struct {
         // Strip frame identifier and 16-bit CRC FCS.
         const msgBuf = buf[1..(buf.len - @sizeOf(u16))];
 
-        var par = try zoap.Parser.init(msgBuf);
-        const uri = try par.find_option(zoap.options.URIPath);
-
-        if (par.header.code.equal(zoap.codes.PUT)) {
-            if (std.mem.eql(u8, uri.value, "panic")) {
-                @panic("User requested a panic!");
-            }
-        }
+        var pkt = try zoap.pkt.Packet.init(msgBuf);
+        self.handler(&pkt);
     }
 
-    fn dispatchFrame(buf: []const u8) !void {
+    fn dispatchFrame(self: *SlipMux, buf: []const u8) !void {
         switch (buf[0]) {
             FRAME_IP4[0]...FRAME_IP4[1] => {
                 return error.NoIPv4Support;
@@ -142,7 +139,7 @@ pub const SlipMux = struct {
                 return error.NoDiagnosticSupport;
             },
             FRAME_COAP => {
-                try handleCoAP(buf);
+                try self.handleCoAP(buf);
             },
             else => {
                 return error.UnknownFrame;
@@ -150,19 +147,17 @@ pub const SlipMux = struct {
         }
     }
 
-    fn handleFrame(buf: []const u8) void {
+    fn handleFrame(ctx: *c_void, buf: []const u8) void {
+        var self: *SlipMux = @ptrCast(*SlipMux, @alignCast(@alignOf(SlipMux), ctx));
         if (buf.len == 0)
             return;
 
-        dispatchFrame(buf) catch |err| {
+        self.dispatchFrame(buf) catch |err| {
             console.print("handleFrame failed: {}\n", .{@errorName(err)});
         };
     }
 
-    pub fn init(uart: Uart, plic: Plic) !SlipMux {
-        var slip = try Slip.init(uart, plic, handleFrame);
-        return SlipMux{
-            .slip = slip,
-        };
+    pub fn init(self: *SlipMux, uart: Uart, plic: Plic) !void {
+        _ = try Slip.init(uart, plic, handleFrame, self);
     }
 };
