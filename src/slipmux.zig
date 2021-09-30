@@ -28,14 +28,14 @@ const Slip = struct {
     rcvpos: usize = 0,
     prev_esc: bool = false,
 
-    fn write_byte(self: *Slip, byte: u8) void {
+    fn writeByte(self: *Slip, byte: u8) void {
         self.rcvbuf[self.rcvpos] = byte;
         self.rcvpos += 1;
 
         self.prev_esc = false;
     }
 
-    fn handle_byte(self: *Slip, byte: u8) !void {
+    fn handleByte(self: *Slip, byte: u8) !void {
         if (self.rcvpos >= self.rcvbuf.len)
             return error.FrameTooLarge;
 
@@ -59,10 +59,10 @@ const Slip = struct {
                     c = byte;
                 }
 
-                self.write_byte(c);
+                self.writeByte(c);
             },
             else => {
-                self.write_byte(byte);
+                self.writeByte(byte);
             },
         }
     }
@@ -76,7 +76,7 @@ const Slip = struct {
                 unreachable;
             };
 
-            try self.handle_byte(byte);
+            try self.handleByte(byte);
         }
     }
 
@@ -111,7 +111,7 @@ const Slip = struct {
 pub const SlipMux = struct {
     slip: Slip,
 
-    fn handle_coap(buf: []const u8) !void {
+    fn handleCoAP(buf: []const u8) !void {
         if (buf.len <= 3)
             return error.CoAPFrameTooShort;
         if (!crc.validCsum(buf))
@@ -130,7 +130,7 @@ pub const SlipMux = struct {
         }
     }
 
-    fn dispatch_frame(buf: []const u8) !void {
+    fn dispatchFrame(buf: []const u8) !void {
         switch (buf[0]) {
             SLIPMUX_IP4[0]...SLIPMUX_IP4[1] => {
                 return error.NoIPv4Support;
@@ -142,7 +142,7 @@ pub const SlipMux = struct {
                 return error.NoDiagnosticSupport;
             },
             SLIPMUX_COAP => {
-                try handle_coap(buf);
+                try handleCoAP(buf);
             },
             else => {
                 return error.UnknownFrame;
@@ -150,17 +150,17 @@ pub const SlipMux = struct {
         }
     }
 
-    fn handle_frame(buf: []const u8) void {
+    fn handleFrame(buf: []const u8) void {
         if (buf.len == 0)
             return;
 
-        dispatch_frame(buf) catch |err| {
-            console.print("handle_frame failed: {}\n", .{@errorName(err)});
+        dispatchFrame(buf) catch |err| {
+            console.print("handleFrame failed: {}\n", .{@errorName(err)});
         };
     }
 
     pub fn init(uart: Uart, plic: Plic) !SlipMux {
-        var slip = try Slip.init(uart, plic, handle_frame);
+        var slip = try Slip.init(uart, plic, handleFrame);
         return SlipMux{
             .slip = slip,
         };

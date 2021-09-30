@@ -9,7 +9,7 @@ set -e
 ELF_FILE=./zig-cache/bin/main
 export GDB_PORT=3333
 
-openocd -f openocd.cfg &
+#openocd -f openocd.cfg &
 
 gdb-multiarch $ELF_FILE --batch -ex "set remotetimeout 240" \
 	-ex "target extended-remote localhost:${GDB_PORT}" \
