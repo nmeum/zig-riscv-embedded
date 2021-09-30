@@ -3,10 +3,6 @@ const slipmux = @import("slipmux.zig");
 const periph = @import("periph.zig");
 const zoap = @import("zoap");
 
-var smux = slipmux.SlipMux{
-    .handler = coapHandler,
-};
-
 const resources = &[_]zoap.res.Resource{
     .{ .path = "panic", .handler = panicHandler },
 };
@@ -33,6 +29,10 @@ pub fn coapHandler(pkt: *zoap.pkt.Packet) void {
 }
 
 pub fn main() !void {
+    var smux = slipmux.SlipMux{
+        .handler = coapHandler,
+    };
+
     try smux.init(periph.uart1, periph.plic0);
     console.print("Waiting for incoming CoAP packets over UART1...\n", .{});
 }
