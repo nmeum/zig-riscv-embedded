@@ -17,6 +17,7 @@ pub const Gpio = struct {
         INPUT_EN = 0x04,
         OUTPUT_EN = 0x08,
         OUTPUT_VAL = 0x0c,
+        PUE = 0x10,
         IOF_EN = 0x38,
         IOF_SEL = 0x3c,
     };
@@ -60,10 +61,12 @@ pub const Gpio = struct {
             Mode.IN => {
                 self.setRegister(Reg.INPUT_EN, x, 1);
                 self.setRegister(Reg.OUTPUT_EN, x, 0);
+                self.setRegister(Reg.PUE, x, 0);
             },
             Mode.OUT => {
                 self.setRegister(Reg.INPUT_EN, x, 0);
                 self.setRegister(Reg.OUTPUT_EN, x, 1);
+                self.setRegister(Reg.PUE, x, 0);
             },
         }
 
