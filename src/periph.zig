@@ -57,4 +57,8 @@ pub fn init() void {
     gpio0.init(led0, gpio.Mode.OUT);
     gpio0.init(led1, gpio.Mode.OUT);
     gpio0.init(led2, gpio.Mode.OUT);
+
+    gpio0.set(led0, 1);
+    gpio0.set(led1, 1);
+    gpio0.set(led2, 1);
 }
