@@ -99,6 +99,16 @@ pub const Uart = struct {
         self.writeWord(Reg.TXFIFO, value);
     }
 
+    fn drainInput(self: Uart) void {
+        while (true) {
+            _ = self.readByte() catch |err| {
+                if (err == error.EndOfStream)
+                    break;
+                unreachable;
+            };
+        }
+    }
+
     // TODO: Use optional instead of error
     pub fn readByte(self: Uart) !u8 {
         // TODO: use a packed struct for the rxdata register, with
@@ -136,5 +146,8 @@ pub const Uart = struct {
             ugpio.setIOFCtrl(self.tx_pin, 0);
         if (conf.rx)
             ugpio.setIOFCtrl(self.rx_pin, 0);
+
+        if (conf.rx)
+            self.drainInput();
     }
 };
