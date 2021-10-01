@@ -24,6 +24,11 @@ const UART1_CTRL_ADDR: usize = 0x10023000;
 const PLIC_CTRL_ADDR: usize = 0x0C000000;
 const GPIO_CTRL_ADDR: usize = 0x10012000;
 
+// LEDs.
+pub const led0 = gpio.pin(0, 22);
+pub const led1 = gpio.pin(0, 19);
+pub const led2 = gpio.pin(0, 21);
+
 pub const gpio0 = gpio.Gpio{
     .base_addr = GPIO_CTRL_ADDR,
 };
@@ -48,4 +53,8 @@ pub var slipmux = smux.SlipMux{
 pub fn init() void {
     plic0.init();
     uart0.init(gpio0, .{ .tx = true, .rx = true });
+
+    gpio0.init(led0, gpio.Mode.OUT);
+    gpio0.init(led1, gpio.Mode.OUT);
+    gpio0.init(led2, gpio.Mode.OUT);
 }
