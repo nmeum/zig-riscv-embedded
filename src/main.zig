@@ -4,17 +4,27 @@ const periph = @import("periph.zig");
 const zoap = @import("zoap");
 
 const resources = &[_]zoap.res.Resource{
-    .{ .path = "panic", .handler = panicHandler },
+    .{ .path = "on", .handler = ledOn },
+    .{ .path = "off", .handler = ledOff },
 };
 const dispatcher = zoap.res.Dispatcher{
     .resources = resources,
 };
 
-pub fn panicHandler(pkt: *zoap.pkt.Packet) void {
+pub fn ledOn(pkt: *zoap.pkt.Packet) void {
     if (!pkt.header.code.equal(zoap.codes.PUT))
         return;
 
-    @panic("User requested a panic!");
+    console.print("[coap] Turning LED on\n", .{});
+    periph.gpio0.set(periph.led0, 0);
+}
+
+pub fn ledOff(pkt: *zoap.pkt.Packet) void {
+    if (!pkt.header.code.equal(zoap.codes.PUT))
+        return;
+
+    console.print("[coap] Turning LED off\n", .{});
+    periph.gpio0.set(periph.led0, 1);
 }
 
 pub fn coapHandler(pkt: *zoap.pkt.Packet) void {
