@@ -118,7 +118,7 @@ for more information.
 [riot fe310]: https://github.com/RIOT-OS/RIOT/tree/master/cpu/fe310
 [slipmux]: https://datatracker.ietf.org/doc/html/draft-bormann-t2trg-slipmux-03
 [rfc7252]: https://datatracker.ietf.org/doc/html/rfc7252
-[rfc1055]: https://datatracker.ietf.org/doc/html/draft-bormann-t2trg-slipmux-03
+[rfc1055]: https://datatracker.ietf.org/doc/html/rfc1055
 [libcoap github]: https://github.com/obgm/libcoap
 [golang web]: https://golang.org
 [zoap github]: https://github.com/nmeum/zoap
