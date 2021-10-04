@@ -77,6 +77,13 @@ For example, using `coap-client(1)` from [libcoap][libcoap github]:
 
 ## Real Hardware
 
+**Disclaimer:** The code is presently a bit flaky on real hardware and
+difficult to debug as I did not anticipate that the QFN48 package of the
+FE310-G000 (used by the HiFive1) does not actually support UART1. As
+such, it would be desirable to properly implement
+[raft-bormann-t2trg-slipmux-03][slipmux] to multiplex diagnostic debug
+messages and CoAP frames over the same UART.
+
 The binary can be flashed to real hardware using OpenOCD and gdb. For
 this purpose, a shell script is provided. In order to flash a compiled
 binary run the following command:
