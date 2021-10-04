@@ -22,7 +22,7 @@ const CLK_FREQ = 16 * 1000 * 1000; // 16 MHZ
 pub const ConfFlags = struct {
     tx: bool,
     rx: bool,
-    cnt: u3 = 1,
+    cnt: u3 = 0,
     baud: u32 = 115200,
 };
 
