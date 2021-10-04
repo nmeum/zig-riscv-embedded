@@ -78,7 +78,7 @@ def recv_thread(serial, input):
         # The FTDI chip on the HiFive1 does not seem to do hardware flow
         # control, thus just use an oppertunistic sleep here to ensure
         # that the FIFO never becomes full.
-        time.sleep(1)
+        time.sleep(0.1)
 
         serial.write(data)
 
