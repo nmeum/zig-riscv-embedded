@@ -18,21 +18,17 @@ pub fn panicHandler(pkt: *zoap.pkt.Packet) void {
 }
 
 pub fn coapHandler(pkt: *zoap.pkt.Packet) void {
-    console.debug("[coap] Incoming request\n", .{});
+    console.print("[coap] Incoming request\n", .{});
     const ret = dispatcher.dispatch(pkt) catch |err| {
-        console.debug("[coap] Dispatch failed: {}\n", .{@errorName(err)});
+        console.print("[coap] Dispatch failed: {}\n", .{@errorName(err)});
         return;
     };
 
     if (!ret)
-        console.debug("[coap] Request to unknown resource\n", .{});
+        console.print("[coap] Request to unknown resource\n", .{});
 }
 
 pub fn main() !void {
-    var smux = slipmux.SlipMux{
-        .handler = coapHandler,
-    };
-
-    try smux.init(periph.uart1, periph.plic0);
-    console.print("Waiting for incoming CoAP packets over UART1...\n", .{});
+    try periph.slipmux.registerHandler(coapHandler);
+    console.print("Waiting for incoming CoAP packets over UART0...\n", .{});
 }

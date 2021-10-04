@@ -1,24 +1,16 @@
-const io = @import("io.zig");
 const periph = @import("periph.zig");
+const slipmux = @import("slipmux.zig");
 
-var buffered = io.BufferedIO{
-    .plic = periph.plic0,
-    .uart = periph.uart0,
-};
-
-var unbufferedWriter = io.UnbufferedWriter.init(periph.uart0);
-
-// Write a message, unbuffered to standard output.
-pub fn debug(comptime fmt: []const u8, args: anytype) void {
-    unbufferedWriter.print(fmt, args) catch return;
+pub fn getStdDbg() slipmux.Frame {
+    const ftype = slipmux.SlipMux.FrameType.diagnostic;
+    return periph.slipmux.newFrame(ftype);
 }
 
-// Write a message, buffered to standard output.
+// Write a Slipmux diagnostic message, unbuffered, to the UART.
 pub fn print(comptime fmt: []const u8, args: anytype) void {
-    const w = buffered.writer();
-    w.print(fmt, args) catch return;
-}
+    const stddbg = getStdDbg();
+    defer stddbg.close();
 
-pub fn init() !void {
-    try buffered.init();
+    const w = stddbg.writer();
+    nosuspend w.print(fmt, args) catch return;
 }

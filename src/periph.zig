@@ -16,6 +16,7 @@
 const gpio = @import("gpio.zig");
 const plic = @import("plic.zig");
 const uart = @import("uart.zig");
+const smux = @import("slipmux.zig");
 
 // Addresses of FE310 peripherals.
 const UART0_CTRL_ADDR: usize = 0x10013000;
@@ -29,23 +30,22 @@ pub const gpio0 = gpio.Gpio{
 pub const plic0 = plic.Plic{
     .base_addr = PLIC_CTRL_ADDR,
 };
-pub const uart0 = uart.Uart{
+
+const uart0 = uart.Uart{
     .base_addr = UART0_CTRL_ADDR,
     .rx_pin = gpio.pin(0, 16),
     .tx_pin = gpio.pin(0, 17),
     .irq = 3,
 };
-pub const uart1 = uart.Uart{
-    .base_addr = UART1_CTRL_ADDR,
-    .rx_pin = gpio.pin(0, 18),
-    .tx_pin = gpio.pin(0, 23),
-    .irq = 4,
+const slip0 = smux.Slip{
+    .uart = uart0,
+    .plic = plic0,
+};
+pub var slipmux = smux.SlipMux{
+    .slip = slip0,
 };
 
 pub fn init() void {
     plic0.init();
-
-    // Initialize both uarts.
-    uart0.init(gpio0, .{ .tx = true, .rx = false });
-    uart1.init(gpio0, .{ .tx = false, .rx = true });
+    uart0.init(gpio0, .{ .tx = true, .rx = true });
 }
