@@ -10,7 +10,7 @@ import (
 
 const (
 	pause = 1 * time.Second
-	depth = 8
+	fifoDepth = 8
 )
 
 type SlowWriter struct {
@@ -24,7 +24,7 @@ func NewSlowWriter(w io.Writer) SlowWriter {
 func (w SlowWriter) Write(p []byte) (int, error) {
 	var n int
 	for i, c := range p {
-		if i != 0 && i%depth == 0 {
+		if i != 0 && i%fifoDepth == 0 {
 			time.Sleep(pause)
 		}
 
