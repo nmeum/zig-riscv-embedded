@@ -4,35 +4,41 @@ const periph = @import("periph.zig");
 const zoap = @import("zoap");
 
 const resources = &[_]zoap.res.Resource{
-    .{ .path = "panic", .handler = panicHandler },
+    .{ .path = "on", .handler = ledOn },
+    .{ .path = "off", .handler = ledOff },
 };
 const dispatcher = zoap.res.Dispatcher{
     .resources = resources,
 };
 
-pub fn panicHandler(pkt: *zoap.pkt.Packet) void {
+pub fn ledOn(pkt: *zoap.pkt.Packet) void {
     if (!pkt.header.code.equal(zoap.codes.PUT))
         return;
 
-    @panic("User requested a panic!");
+    console.print("[coap] Turning LED on\n", .{});
+    periph.gpio0.set(periph.led0, 0);
+}
+
+pub fn ledOff(pkt: *zoap.pkt.Packet) void {
+    if (!pkt.header.code.equal(zoap.codes.PUT))
+        return;
+
+    console.print("[coap] Turning LED off\n", .{});
+    periph.gpio0.set(periph.led0, 1);
 }
 
 pub fn coapHandler(pkt: *zoap.pkt.Packet) void {
-    console.debug("[coap] Incoming request\n", .{});
+    console.print("[coap] Incoming request\n", .{});
     const ret = dispatcher.dispatch(pkt) catch |err| {
-        console.debug("[coap] Dispatch failed: {}\n", .{@errorName(err)});
+        console.print("[coap] Dispatch failed: {}\n", .{@errorName(err)});
         return;
     };
 
     if (!ret)
-        console.debug("[coap] Request to unknown resource\n", .{});
+        console.print("[coap] Request to unknown resource\n", .{});
 }
 
 pub fn main() !void {
-    var smux = slipmux.SlipMux{
-        .handler = coapHandler,
-    };
-
-    try smux.init(periph.uart1, periph.plic0);
-    console.print("Waiting for incoming CoAP packets over UART1...\n", .{});
+    try periph.slipmux.registerHandler(coapHandler);
+    console.print("Waiting for incoming CoAP packets over UART0...\n", .{});
 }

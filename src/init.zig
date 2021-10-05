@@ -30,7 +30,7 @@ pub fn panic(msg: []const u8, error_return_trace: ?*StackTrace) noreturn {
     @setCold(true);
 
     // Write panic message, unbuffered to standard out
-    console.debug("PANIC: {}\n", .{msg});
+    console.print("PANIC: {}\n", .{msg});
 
     @breakpoint();
     while (true) {}
@@ -54,11 +54,8 @@ export fn level1IRQHandler() void {
 
 export fn init() void {
     periph.init();
-    console.init() catch |err| {
-        @panic(@errorName(err));
-    };
-
     console.print("Booting zig-riscv-embedded...\n", .{});
+
     main.main() catch |err| {
         @panic(@errorName(err));
     };

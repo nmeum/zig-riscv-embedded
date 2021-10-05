@@ -22,7 +22,7 @@ const CLK_FREQ = 16 * 1000 * 1000; // 16 MHZ
 pub const ConfFlags = struct {
     tx: bool,
     rx: bool,
-    cnt: u3 = 1,
+    cnt: u3 = 0,
     baud: u32 = 115200,
 };
 
@@ -99,6 +99,16 @@ pub const Uart = struct {
         self.writeWord(Reg.TXFIFO, value);
     }
 
+    fn drainInput(self: Uart) void {
+        while (true) {
+            _ = self.readByte() catch |err| {
+                if (err == error.EndOfStream)
+                    break;
+                unreachable;
+            };
+        }
+    }
+
     // TODO: Use optional instead of error
     pub fn readByte(self: Uart) !u8 {
         // TODO: use a packed struct for the rxdata register, with
@@ -136,5 +146,8 @@ pub const Uart = struct {
             ugpio.setIOFCtrl(self.tx_pin, 0);
         if (conf.rx)
             ugpio.setIOFCtrl(self.rx_pin, 0);
+
+        if (conf.rx)
+            self.drainInput();
     }
 };
