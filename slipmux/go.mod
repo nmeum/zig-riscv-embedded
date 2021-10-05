@@ -1,4 +1,4 @@
-module github.com/nmeum/coap-slip
+module github.com/nmeum/zig-riscv-embedded/slipmux
 
 go 1.17
 
