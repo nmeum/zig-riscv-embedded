@@ -30,17 +30,18 @@ pub const Slip = struct {
     fn writeByte(self: *Slip, byte: u8) void {
         self.rcvbuf[self.rcvpos] = byte;
         self.rcvpos += 1;
-
-        self.prev_esc = false;
     }
 
     fn handleByte(self: *Slip, byte: u8) !void {
-        if (self.rcvpos >= self.rcvbuf.len)
+        if (self.rcvpos >= self.rcvbuf.len) {
+            self.prev_esc = false;
             return error.FrameTooLarge;
+        }
 
         switch (byte) {
             SLIP_ESC => {
                 self.prev_esc = true;
+                return;
             },
             SLIP_END => {
                 if (self.handler != null)
@@ -65,6 +66,8 @@ pub const Slip = struct {
                 self.writeByte(byte);
             },
         }
+
+        self.prev_esc = false;
     }
 
     fn rxIrqHandler(self: *Slip) !void {
