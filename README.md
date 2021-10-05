@@ -8,25 +8,34 @@ This repository is intended to provide a simple sample application for
 experimenting with the Zig programming language on freestanding RISC-V.
 The application targets the [SiFive FE310-G000][fe310 manual] or more
 specifically the [HiFive 1][hifive1 website]. While possible to run the
-application on "real hardware", it can also be run using QEMU.
+application on "real hardware", it can also be run using QEMU. In both
+cases it is possible to toggle an LED using [CoAP][rfc7252] over
+[SLIP][rfc1055].
 
-## CoAP over Serial
+## CoAP over SLIP
 
 To experiment with external dependencies in Zig, this application
-provides a very bare bone implementation of the [Constrained Application Protocol][rfc7252]
-using [zoap][zoap github]. Since implementing an entire UDP/IP stack
-from scratch is out-of-scope, this repository transports raw CoAP packets
-directly over [SLIP][rfc1055]. For this purpose, this repository abuses
-the CoAP framing format from [draft-bormann-t2trg-slipmux-03][slipmux]
-(Slipmux). A proxy for converting CoAP packets, as received over UDP, to this
-framing format is available in the `./coap-slip` subdirectory.
+provides a very bare bone implementation of [CoAP][rfc7252] using
+[zoap][zoap github]. Since implementing an entire UDP/IP stack from
+scratch is out-of-scope, this repository transports CoAP packets
+directly over [SLIP][rfc1055].
+
+Unfortunately, the QFN48 package of the FE310-G000 (as used by the
+HiFive1) does not support the UART1. For this reason, the application
+multiplexes diagnostic messages and CoAP frames over the same UART
+(UART0) using [Slipmux][slipmux]. For this purpose, a Go-based
+multiplexer for the development system is available in the `./slipmux`
+subdirectory.
 
 ## Dependencies
 
+For building the software and the associated Slipmux tooling, the
+following software is required:
+
 * Zig `0.7.1`
-* [Go][golang web] for compiling the `coap-slip` proxy
-* QEMU (`qemu-system-riscv32`) for emulating a HiFive1
+* [Go][golang web] for compiling the `./slipmux` tool
 * A CoAP client, e.g. `coap-client(1)` from [libcoap][libcoap github]
+* QEMU (`qemu-system-riscv32`) for emulating a HiFive1 (optional)
 
 For flashing to real hardware, the following software is required:
 
@@ -46,44 +55,37 @@ If the image should be booted on real hardware, building in the
 
 	$ zig build -Drelease-small
 
-## Usage
+Furthermore, the Slipmux multiplexer needs to be compiled using the
+following commands in order to receive diagnostic messages from the
+device and send CoAP messages to the device:
 
-The generated ELF binary can be flashed on the HiFive1 and it can also
-be booted using the [qemu][qemu website] `sifive_e` machine as follows:
+	$ cd slipmux && go build -trimpath
 
-	$ mkfifo /tmp/input
-	$ qemu-system-riscv32 -M sifive_e -nographic -kernel zig-cache/bin/main \
-		-serial file:/tmp/out -serial pipe:/tmp/input
+## Booting in QEMU
 
-This will create an output file for UART0 in `/tmp/out` which can be
-read using `tail -f /tmp/out`. Additionally, it will create a named pipe
-in `/tmp/input`. Slipmux CoAP frames can be written to this named pipe
-and will afterwards be parsed by the Zig application code. For
-converting CoAP packets to Slipmux frames, a proxy is available in the
-`./coap-slip` subdirectory. The proxy is written in Go and can be compiled
-as follows:
+In order to simulate a serial device, which can be used with the
+`./slipmux` tool, QEMU must be started as follows:
 
-	$ cd coap-slip && go build -trimpath
+	$ qemu-system-riscv32 -M sifive_e -nographic -kernel zig-cache/bin/main -serial pty
 
-After compiling this proxy, it can be started as follows:
+QEMU will print the allocated PTY path to standard output. In a separate
+terminal the `./slipmux` tool can then be started as follows:
 
-	$ ./coap-slip :2342 >> /tmp/input
+	$ ./slipmux/slipmux :2342 <PTY allocated by QEMU>
 
-Afterwards, CoAP packets can be written to `localhost:2342` and will
-then be forwarded in the Slipmux CoAP framing format to the Zig code.
-For example, using `coap-client(1)` from [libcoap][libcoap github]:
+This will create a UDP Socket on `localhost:2342`, CoAP packets send to
+this socket are converted into Slipmux CoAP frames and forwarded to the
+emulated HiFive1 over the allocated PTY. CoAP packets can be send using
+any CoAP client, e.g. using `coap-client(1)` from [libcoap][libcoap github]:
 
 	$ coap-client -N -m put coap://[::1]:2342/on
 	$ coap-client -N -m put coap://[::1]:2342/off
 
-## Real Hardware
+In QEMU, this will cause debug messages to appear in the terminal window
+were `./slipmux` is running. On real hardware, it will also cause the
+red LED to be toggled.
 
-**Disclaimer:** The code is presently a bit flaky on real hardware and
-difficult to debug as I did not anticipate that the QFN48 package of the
-FE310-G000 (used by the HiFive1) does not actually support UART1. As
-such, it would be desirable to properly implement
-[raft-bormann-t2trg-slipmux-03][slipmux] to multiplex diagnostic debug
-messages and CoAP frames over the same UART.
+## Booting on real hardware
 
 The binary can be flashed to real hardware using OpenOCD and gdb. For
 this purpose, a shell script is provided. In order to flash a compiled
@@ -91,8 +93,14 @@ binary run the following command:
 
 	$ ./flash
 
+After flashing the device, interactions through CoAP are possible using
+the instructions given for QEMU above. However, with real hardware
+`./slipmux` needs to be passed the TTY device for the HiFive1 (i.e.
+`/dev/ttyUSB0`).
+
 To debug errors on real hardware start OpenOCD using `openocd -f
-openocd.cfg`. In a separate terminal start gdb as follows:
+openocd.cfg`. In a separate terminal start a gdb version with RISC-V
+support (e.g. [gdb-multiarch][gdb-multiarch alpine]) as follows:
 
 	$ gdb-multiarch -ex 'target extended-remote :3333' zig-cache/bin/main
 
@@ -125,3 +133,4 @@ for more information.
 [zoap github]: https://github.com/nmeum/zoap
 [riscv-openocd]: https://github.com/riscv/riscv-openocd
 [gdb web]: https://www.gnu.org/software/gdb/
+[gdb-multiarch alpine]: https://pkgs.alpinelinux.org/package/edge/main/x86_64/gdb-multiarch
