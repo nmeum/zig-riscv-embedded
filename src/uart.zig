@@ -101,22 +101,18 @@ pub const Uart = struct {
 
     fn drainInput(self: Uart) void {
         while (true) {
-            _ = self.readByte() catch |err| {
-                if (err == error.EndOfStream)
-                    break;
-                unreachable;
-            };
+            if (self.readByte() == null)
+                break;
         }
     }
 
-    // TODO: Use optional instead of error
-    pub fn readByte(self: Uart) !u8 {
+    pub fn readByte(self: Uart) ?u8 {
         // TODO: use a packed struct for the rxdata register, with
         // Zig 0.6 doing so unfourtunatly triggers a compiler bug.
         const rxdata = self.readWord(Reg.RXFIFO);
 
         if ((rxdata & (1 << 31)) != 0)
-            return error.EndOfStream;
+            return null;
         return @truncate(u8, rxdata);
     }
 

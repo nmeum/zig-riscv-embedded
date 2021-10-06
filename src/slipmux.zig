@@ -73,13 +73,11 @@ pub const Slip = struct {
     fn rxIrqHandler(self: *Slip) !void {
         var n: usize = 0;
         while (true) {
-            const byte = self.uart.readByte() catch |err| {
-                if (err == error.EndOfStream)
-                    break;
-                unreachable;
-            };
-
-            try self.handleByte(byte);
+            if (self.uart.readByte()) |byte| {
+                try self.handleByte(byte);
+            } else {
+                break;
+            }
         }
     }
 
