@@ -33,13 +33,13 @@ pub const Uart = struct {
     irq: plic.Irq,
 
     const Reg = enum(usize) {
-        TXFIFO = 0x00,
-        RXFIFO = 0x04,
-        TXCTRL = 0x08,
-        RXCTRL = 0x0c,
-        IE = 0x10,
-        IP = 0x14,
-        DIV = 0x18,
+        txfifo = 0x00,
+        rxfifo = 0x04,
+        txctrl = 0x08,
+        rxctrl = 0x0c,
+        ie = 0x10,
+        ip = 0x14,
+        div = 0x18,
     };
 
     pub const FIFO_DEPTH: usize = 8;
@@ -77,26 +77,26 @@ pub const Uart = struct {
 
     pub fn writeTxctrl(self: Uart, ctrl: txctrl) void {
         var serialized = @bitCast(u32, ctrl);
-        self.writeWord(Reg.TXCTRL, serialized);
+        self.writeWord(Reg.txctrl, serialized);
     }
 
     pub fn writeRxctrl(self: Uart, ctrl: rxctrl) void {
         var serialized = @bitCast(u32, ctrl);
-        self.writeWord(Reg.RXCTRL, serialized);
+        self.writeWord(Reg.rxctrl, serialized);
     }
 
     pub fn readIp(self: Uart) ie {
-        const ip = self.readWord(Reg.IP);
+        const ip = self.readWord(Reg.ip);
         return @bitCast(ie, ip);
     }
 
     pub fn writeIe(self: Uart, val: ie) void {
         var serialized = @bitCast(u32, val);
-        self.writeWord(Reg.IE, serialized);
+        self.writeWord(Reg.ie, serialized);
     }
 
     pub fn writeByte(self: Uart, value: u8) void {
-        self.writeWord(Reg.TXFIFO, value);
+        self.writeWord(Reg.txfifo, value);
     }
 
     fn drainInput(self: Uart) void {
@@ -109,7 +109,7 @@ pub const Uart = struct {
     pub fn readByte(self: Uart) ?u8 {
         // TODO: use a packed struct for the rxdata register, with
         // Zig 0.6 doing so unfourtunatly triggers a compiler bug.
-        const rxdata = self.readWord(Reg.RXFIFO);
+        const rxdata = self.readWord(Reg.rxfifo);
 
         if ((rxdata & (1 << 31)) != 0)
             return null;
@@ -119,13 +119,13 @@ pub const Uart = struct {
     pub fn isTxFull(self: Uart) bool {
         // TODO: use a packed struct for the txdata register, with
         // Zig 0.6 doing so unfourtunatly triggers a compiler bug.
-        const txdata = self.readWord(Reg.TXFIFO);
+        const txdata = self.readWord(Reg.txfifo);
         return (txdata & (1 << 31)) != 0;
     }
 
     pub fn init(self: Uart, ugpio: gpio.Gpio, conf: ConfFlags) void {
         // Enable the UART at the given baud rate
-        self.writeWord(Reg.DIV, CLK_FREQ / conf.baud);
+        self.writeWord(Reg.div, CLK_FREQ / conf.baud);
 
         self.writeTxctrl(txctrl{
             .txen = conf.tx,

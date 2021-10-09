@@ -29,12 +29,12 @@ pub const Gpio = struct {
     base_addr: usize,
 
     const Reg = enum(usize) {
-        INPUT_EN = 0x04,
-        OUTPUT_EN = 0x08,
-        OUTPUT_VAL = 0x0c,
-        PUE = 0x10,
-        IOF_EN = 0x38,
-        IOF_SEL = 0x3c,
+        input = 0x04,
+        output_en = 0x08,
+        output_val = 0x0c,
+        pue = 0x10,
+        iof_en = 0x38,
+        iof_sel = 0x3c,
     };
 
     fn readWord(self: Gpio, reg: Reg) u32 {
@@ -61,32 +61,32 @@ pub const Gpio = struct {
     // Configure a GPIO pin as IOF controlled (instead of software controlled).
     pub fn setIOFCtrl(self: Gpio, x: Pin, select: u1) void {
         // Select one of the two HW-Driven functions.
-        self.setRegister(Reg.IOF_SEL, x, select);
+        self.setRegister(Reg.iof_sel, x, select);
 
         // Enable selected HW-Driven function.
-        self.setRegister(Reg.IOF_EN, x, 1);
+        self.setRegister(Reg.iof_en, x, 1);
     }
 
     pub fn set(self: Gpio, x: Pin, v: u1) void {
-        self.setRegister(Reg.OUTPUT_VAL, x, v);
+        self.setRegister(Reg.output_val, x, v);
     }
 
     pub fn init(self: Gpio, x: Pin, mode: Mode) void {
         switch (mode) {
             Mode.IN => {
-                self.setRegister(Reg.INPUT_EN, x, 1);
-                self.setRegister(Reg.OUTPUT_EN, x, 0);
-                self.setRegister(Reg.PUE, x, 0);
+                self.setRegister(Reg.input, x, 1);
+                self.setRegister(Reg.output_en, x, 0);
+                self.setRegister(Reg.pue, x, 0);
             },
             Mode.OUT => {
-                self.setRegister(Reg.INPUT_EN, x, 0);
-                self.setRegister(Reg.OUTPUT_EN, x, 1);
-                self.setRegister(Reg.PUE, x, 0);
+                self.setRegister(Reg.input, x, 0);
+                self.setRegister(Reg.output_en, x, 1);
+                self.setRegister(Reg.pue, x, 0);
             },
         }
 
         // Disable HW-driven functions for Pin
-        self.setRegister(Reg.IOF_EN, x, 0);
-        self.setRegister(Reg.IOF_SEL, x, 0);
+        self.setRegister(Reg.iof_en, x, 0);
+        self.setRegister(Reg.iof_sel, x, 0);
     }
 };
