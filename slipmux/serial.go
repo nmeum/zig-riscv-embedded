@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 
 	"github.com/Lobaro/slip"
 	"go.bug.st/serial"
@@ -39,7 +40,11 @@ func (s *SerialEndpoint) loop(ch chan<- []byte) {
 	reader := slip.NewReader(s.port)
 	for {
 		packet, _, err := reader.ReadPacket()
-		if err != nil {
+
+		var perr *serial.PortError
+		if errors.As(err, &perr) && perr.Code() == serial.PortClosed {
+			logger.Fatal("serialChan:", err)
+		} else if err != nil {
 			logger.Println("serialChan:", err)
 			continue
 		}
