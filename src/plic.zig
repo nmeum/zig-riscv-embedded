@@ -34,8 +34,8 @@ pub const Plic = struct {
     const INTERRUPT_SOURCES: Irq = 52;
 
     // TODO: Get rid of c_void in the long run.
-    var irq_handlers: [INTERRUPT_SOURCES]?Handler = undefined;
-    var irq_contexts: [INTERRUPT_SOURCES]?*c_void = undefined;
+    var irq_handlers = [_]?Handler{null} ** INTERRUPT_SOURCES;
+    var irq_contexts = [_]?*c_void{null} ** INTERRUPT_SOURCES;
 
     pub fn setThreshold(self: Plic, threshold: u3) void {
         const plic_thres = @intToPtr(*volatile u32, PLIC_CTRL_ADDR + PLIC_CONTEXT_OFF);
