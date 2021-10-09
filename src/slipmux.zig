@@ -24,15 +24,12 @@ const Uart = @import("uart.zig").Uart;
 const FrameHandler = fn (ctx: ?*c_void, buf: []const u8) void;
 const CoapHandler = fn (packet: *zoap.pkt.Packet) void;
 
-// SLIP (as defined in RFC 1055) doesn't specify an MTU.
-const SLIP_MTU: u32 = 1500;
-
 pub const Slip = struct {
     uart: Uart,
     plic: Plic,
     handler: ?FrameHandler = null,
     context: ?*c_void = null,
-    rcvbuf: [SLIP_MTU]u8 = undefined,
+    rcvbuf: [MTU]u8 = undefined,
     rcvpos: usize = 0,
     prev_esc: bool = false,
 
@@ -41,6 +38,9 @@ pub const Slip = struct {
     const ESC: u8 = 0o333;
     const ESC_END: u8 = 0o334;
     const ESC_ESC: u8 = 0o335;
+
+    // SLIP (as defined in RFC 1055) doesn't specify an MTU.
+    const MTU: u32 = 1500;
 
     fn writeByte(self: *Slip, byte: u8) void {
         self.rcvbuf[self.rcvpos] = byte;
