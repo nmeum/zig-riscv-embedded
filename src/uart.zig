@@ -154,6 +154,20 @@ pub const RecvPipe = struct {
     uart: Uart,
     fifo: Fifo = Fifo.init(),
 
+    const ReadError = error{};
+    const Reader = std.io.Reader(*RecvPipe, ReadError, read);
+
+    fn read(self: *RecvPipe, dest: []u8) ReadError!usize {
+        while (self.fifo.readableLength() == 0)
+            asm volatile ("WFI");
+
+        return self.fifo.read(dest);
+    }
+
+    pub fn reader(self: *RecvPipe) Reader {
+        return .{ .context = self };
+    }
+
     fn rxIrqHandler(self: *RecvPipe) !void {
         var buf: [Uart.FIFO_DEPTH]u8 = undefined;
 
@@ -179,17 +193,6 @@ pub const RecvPipe = struct {
             rxIrqHandler(self) catch |err| {
                 @panic(@errorName(err));
             };
-        }
-    }
-
-    // Read a single byte and block if no byte is available.
-    pub fn readByte(self: *RecvPipe) u8 {
-        while (true) {
-            if (self.fifo.readItem()) |byte| {
-                return byte;
-            } else {
-                asm volatile ("WFI");
-            }
         }
     }
 

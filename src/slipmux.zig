@@ -92,8 +92,9 @@ pub const Slip = struct {
         self.handler = func;
         self.context = ctx;
 
+        const reader = self.pipe.reader();
         while (true) {
-            const byte = self.pipe.readByte();
+            const byte: u8 = try reader.readByte();
             try self.handleByte(byte);
         }
     }
