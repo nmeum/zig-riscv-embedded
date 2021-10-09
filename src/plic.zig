@@ -13,17 +13,8 @@
 // You should have received a copy of the GNU General Public License along
 // with this program. If not, see <http://www.gnu.org/licenses/>.
 
-// Offsets for memory mapped PLIC control registers.
-const PLIC_CTRL_ADDR: usize = 0x0C000000;
-const PLIC_PRIO_OFF: usize = 0x0000;
-const PLIC_PENDING_OFF: usize = 0x1000;
-const PLIC_ENABLE_OFF: usize = 0x2000;
-const PLIC_CONTEXT_OFF: usize = 0x200000;
-
-const INTERRUPT_SOURCES: Irq = 52;
-
 // Type alias for IRQ values, largest possible IRQ on the FE310 is
-// 52 (see INTERRUPT_SOURCES above), thus representable by a u6.
+// 52 (see INTERRUPT_SOURCES below), thus representable by a u6.
 pub const Irq = u6;
 
 // Type alias for PLIC interrupt handler functions.
@@ -31,6 +22,16 @@ pub const Handler = fn (args: ?*c_void) void;
 
 pub const Plic = struct {
     base_addr: usize,
+
+    // Offsets for memory mapped PLIC control registers.
+    const PLIC_CTRL_ADDR: usize = 0x0C000000;
+    const PLIC_PRIO_OFF: usize = 0x0000;
+    const PLIC_PENDING_OFF: usize = 0x1000;
+    const PLIC_ENABLE_OFF: usize = 0x2000;
+    const PLIC_CONTEXT_OFF: usize = 0x200000;
+
+    // Amount of interrupt sources supported by plic.
+    const INTERRUPT_SOURCES: Irq = 52;
 
     // TODO: Get rid of c_void in the long run.
     var irq_handlers: [INTERRUPT_SOURCES]?Handler = undefined;
