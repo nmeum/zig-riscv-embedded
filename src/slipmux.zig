@@ -27,12 +27,6 @@ const CoapHandler = fn (packet: *zoap.pkt.Packet) void;
 // SLIP (as defined in RFC 1055) doesn't specify an MTU.
 const SLIP_MTU: u32 = 1500;
 
-// SLIP control bytes from RFC 1055.
-const SLIP_END: u8 = 0o300;
-const SLIP_ESC: u8 = 0o333;
-const SLIP_ESC_END: u8 = 0o334;
-const SLIP_ESC_ESC: u8 = 0o335;
-
 pub const Slip = struct {
     uart: Uart,
     plic: Plic,
@@ -41,6 +35,12 @@ pub const Slip = struct {
     rcvbuf: [SLIP_MTU]u8 = undefined,
     rcvpos: usize = 0,
     prev_esc: bool = false,
+
+    // SLIP control bytes from RFC 1055.
+    const END: u8 = 0o300;
+    const ESC: u8 = 0o333;
+    const ESC_END: u8 = 0o334;
+    const ESC_ESC: u8 = 0o335;
 
     fn writeByte(self: *Slip, byte: u8) void {
         self.rcvbuf[self.rcvpos] = byte;
@@ -54,21 +54,21 @@ pub const Slip = struct {
         }
 
         switch (byte) {
-            SLIP_ESC => {
+            ESC => {
                 self.prev_esc = true;
                 return;
             },
-            SLIP_END => {
+            END => {
                 if (self.handler != null)
                     self.handler.?(self.context, self.rcvbuf[0..self.rcvpos]);
                 self.rcvpos = 0;
             },
-            SLIP_ESC_END, SLIP_ESC_ESC => {
+            ESC_END, ESC_ESC => {
                 var c: u8 = undefined;
                 if (self.prev_esc) {
                     switch (byte) {
-                        SLIP_ESC_END => c = SLIP_END,
-                        SLIP_ESC_ESC => c = SLIP_ESC,
+                        ESC_END => c = END,
+                        ESC_ESC => c = ESC,
                         else => return error.UnknownEscapeSequence,
                     }
                 } else {
@@ -137,13 +137,13 @@ pub const Frame = struct {
     fn write(self: Frame, data: []const u8) WriteError!usize {
         for (data) |c, _| {
             switch (c) {
-                SLIP_END => {
-                    self.pushByte(SLIP_ESC);
-                    self.pushByte(SLIP_ESC_END);
+                Slip.END => {
+                    self.pushByte(Slip.ESC);
+                    self.pushByte(Slip.ESC_END);
                 },
-                SLIP_ESC => {
-                    self.pushByte(SLIP_ESC);
-                    self.pushByte(SLIP_ESC_ESC);
+                Slip.ESC => {
+                    self.pushByte(Slip.ESC);
+                    self.pushByte(Slip.ESC_ESC);
                 },
                 else => {
                     self.pushByte(c);
@@ -155,7 +155,7 @@ pub const Frame = struct {
     }
 
     pub fn close(self: Frame) void {
-        self.pushByte(SLIP_END);
+        self.pushByte(Slip.END);
     }
 
     pub fn writer(self: Frame) FrameWriter {
