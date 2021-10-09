@@ -20,12 +20,13 @@ const console = @import("console.zig");
 
 const Plic = @import("plic.zig").Plic;
 const Uart = @import("uart.zig").Uart;
+const RecvPipe = @import("uart.zig").RecvPipe;
 
 const FrameHandler = fn (ctx: ?*c_void, buf: []const u8) void;
 const CoapHandler = fn (packet: *zoap.pkt.Packet) void;
 
 pub const Slip = struct {
-    uart: Uart,
+    pipe: RecvPipe,
     plic: Plic,
     handler: ?FrameHandler = null,
     context: ?*c_void = null,
@@ -85,38 +86,16 @@ pub const Slip = struct {
         self.prev_esc = false;
     }
 
-    fn rxIrqHandler(self: *Slip) !void {
-        var n: usize = 0;
-        while (true) {
-            if (self.uart.readByte()) |byte| {
-                try self.handleByte(byte);
-            } else {
-                break;
-            }
-        }
-    }
-
-    fn irqHandler(ctx: ?*c_void) void {
-        var self: *Slip = @ptrCast(*Slip, @alignCast(@alignOf(Slip), ctx));
-
-        const ip = self.uart.readIp();
-        if (ip.rxwm) {
-            rxIrqHandler(self) catch {
-                @panic("rx handler failed");
-            };
-        }
-    }
-
-    pub fn registerHandler(self: *Slip, func: FrameHandler, ctx: ?*c_void) !void {
-        self.uart.writeIe(Uart.ie{
-            .txwm = false,
-            .rxwm = true,
-        });
+    pub fn run(self: *Slip, func: FrameHandler, ctx: ?*c_void) !void {
+        try self.pipe.init(self.plic);
 
         self.handler = func;
         self.context = ctx;
 
-        try self.plic.registerHandler(self.uart.irq, irqHandler, self);
+        while (true) {
+            const byte = self.pipe.readByte();
+            try self.handleByte(byte);
+        }
     }
 };
 
@@ -127,7 +106,7 @@ pub const Frame = struct {
     const FrameWriter = std.io.Writer(Frame, WriteError, write);
 
     fn pushByte(self: Frame, byte: u8) void {
-        const uart = self.slip.uart;
+        const uart = self.slip.pipe.uart;
 
         // Busy wait for TX fifo to empty.
         while (uart.isTxFull()) {}
@@ -215,8 +194,8 @@ pub const SlipMux = struct {
         return frame;
     }
 
-    pub fn registerHandler(self: *SlipMux, handler: CoapHandler) !void {
+    pub fn run(self: *SlipMux, handler: CoapHandler) !void {
         self.handler = handler;
-        try self.slip.registerHandler(handleFrame, self);
+        try self.slip.run(handleFrame, self);
     }
 };

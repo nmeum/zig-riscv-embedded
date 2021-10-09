@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU General Public License along
 // with this program. If not, see <http://www.gnu.org/licenses/>.
 
+const std = @import("std");
 const gpio = @import("gpio.zig");
 const plic = @import("plic.zig");
 
@@ -143,5 +144,61 @@ pub const Uart = struct {
 
         if (conf.rx)
             self.drainInput();
+    }
+};
+
+// TODO: Make Fifo size for RecvPipe configurable.
+const Fifo = std.fifo.LinearFifo(u8, .{ .Static = 32 });
+
+pub const RecvPipe = struct {
+    uart: Uart,
+    fifo: Fifo = Fifo.init(),
+
+    fn rxIrqHandler(self: *RecvPipe) !void {
+        var buf: [Uart.FIFO_DEPTH]u8 = undefined;
+
+        var n: usize = 0;
+        while (n < buf.len) : (n += 1) {
+            if (self.uart.readByte()) |byte| {
+                buf[n] = byte;
+            } else {
+                break;
+            }
+        }
+
+        if (self.fifo.writableLength() < n)
+            self.fifo.discard(n);
+        self.fifo.writeAssumeCapacity(buf[0..n]);
+    }
+
+    fn irqHandler(ctx: ?*c_void) void {
+        var self: *RecvPipe = @ptrCast(*RecvPipe, @alignCast(@alignOf(RecvPipe), ctx));
+
+        const ip = self.uart.readIp();
+        if (ip.rxwm) {
+            rxIrqHandler(self) catch |err| {
+                @panic(@errorName(err));
+            };
+        }
+    }
+
+    // Read a single byte and block if no byte is available.
+    pub fn readByte(self: *RecvPipe) u8 {
+        while (true) {
+            if (self.fifo.readItem()) |byte| {
+                return byte;
+            } else {
+                asm volatile ("WFI");
+            }
+        }
+    }
+
+    pub fn init(self: *RecvPipe, pipe_plic: plic.Plic) !void {
+        self.uart.writeIe(Uart.ie{
+            .txwm = false,
+            .rxwm = true,
+        });
+
+        try pipe_plic.registerHandler(self.uart.irq, irqHandler, self);
     }
 };

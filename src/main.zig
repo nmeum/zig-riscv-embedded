@@ -54,6 +54,6 @@ pub fn coapHandler(pkt: *zoap.pkt.Packet) void {
 }
 
 pub fn main() !void {
-    try periph.slipmux.registerHandler(coapHandler);
     console.print("Waiting for incoming CoAP packets over UART0...\n", .{});
+    try periph.slipmux.run(coapHandler);
 }
