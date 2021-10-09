@@ -100,10 +100,8 @@ pub const Uart = struct {
     }
 
     fn drainInput(self: Uart) void {
-        while (true) {
-            if (self.readByte() == null)
-                break;
-        }
+        // Read until self.readByte() returns null
+        while (self.readByte()) |_| {}
     }
 
     pub fn readByte(self: Uart) ?u8 {
