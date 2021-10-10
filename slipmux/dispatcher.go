@@ -29,9 +29,9 @@ func (d *Dispatcher) handleSerial(data []byte) {
 	frame := data[0]
 	switch frame {
 	case slip.FRAME_DIAGNOSTIC:
-		msg := data[1 : len(data)-1]
+		msg := data[1 : len(data)]
 
-		_, err := os.Stdout.WriteString(string(msg) + "\n")
+		_, err := os.Stdout.WriteString(string(msg))
 		if err != nil {
 			logger.Println("handleSerial:", err)
 		}
