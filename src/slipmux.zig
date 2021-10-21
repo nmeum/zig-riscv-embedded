@@ -22,7 +22,7 @@ const Plic = @import("plic.zig").Plic;
 const Uart = @import("uart.zig").Uart;
 
 const FrameHandler = fn (ctx: ?*c_void, buf: []const u8) void;
-const CoapHandler = fn (packet: *zoap.pkt.Packet) void;
+const CoapHandler = fn (req: *zoap.pkt.Request) void;
 
 pub const Slip = struct {
     uart: Uart,
@@ -181,7 +181,7 @@ pub const SlipMux = struct {
         // Strip frame identifier and 16-bit CRC FCS.
         const msgBuf = buf[1..(buf.len - @sizeOf(u16))];
 
-        var pkt = try zoap.pkt.Packet.init(msgBuf);
+        var pkt = try zoap.pkt.Request.init(msgBuf);
         self.handler.?(&pkt);
     }
 
