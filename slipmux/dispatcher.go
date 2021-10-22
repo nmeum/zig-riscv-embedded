@@ -43,7 +43,7 @@ func (d *Dispatcher) handleSerial(data []byte) {
 func (d *Dispatcher) Run() {
 	for {
 		select {
-		case data := <-d.coap.Chan:
+		case data := <-d.coap.RX:
 			d.handleCoap(data)
 		case data := <-d.serial.Chan:
 			d.handleSerial(data)
