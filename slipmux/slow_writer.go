@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	pause = 1 * time.Second
+	pause     = 1 * time.Second
 	fifoDepth = 8
 )
 
