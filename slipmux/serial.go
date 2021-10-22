@@ -10,7 +10,9 @@ import (
 
 type SerialEndpoint struct {
 	port serial.Port
-	Chan <-chan []byte
+
+	RX <-chan []byte
+	TX chan<- []byte
 }
 
 func NewSerialEP(path string) (*SerialEndpoint, error) {
@@ -26,26 +28,46 @@ func NewSerialEP(path string) (*SerialEndpoint, error) {
 		return nil, err
 	}
 
-	ch := make(chan []byte)
+	rx := make(chan []byte)
+	tx := make(chan []byte)
+
 	ep := &SerialEndpoint{
 		port: port,
-		Chan: ch,
+		RX:   rx,
+		TX:   tx,
 	}
 
-	go ep.loop(ch)
+	go ep.rcvLoop(rx)
+	go ep.sndLoop(tx)
+
 	return ep, nil
 }
 
-func (s *SerialEndpoint) loop(ch chan<- []byte) {
+func (s *SerialEndpoint) sndLoop(ch <-chan []byte) {
+	writer := slip.NewSlipMuxWriter(NewSlowWriter(s.port))
+
+	for {
+		data := <-ch
+
+		err := writer.WritePacket(slip.FRAME_COAP, data)
+		if err != nil {
+			logger.Println("handleCoap:", err)
+			continue
+		}
+	}
+}
+
+func (s *SerialEndpoint) rcvLoop(ch chan<- []byte) {
 	reader := slip.NewReader(s.port)
+
 	for {
 		packet, _, err := reader.ReadPacket()
 
 		var perr *serial.PortError
 		if errors.As(err, &perr) && perr.Code() == serial.PortClosed {
-			logger.Fatal("serialChan:", err)
+			logger.Fatal("[SerialEndpoint]", err)
 		} else if err != nil {
-			logger.Println("serialChan:", err)
+			logger.Println("[SerialEndpoint]", err)
 			continue
 		}
 

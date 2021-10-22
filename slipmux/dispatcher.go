@@ -11,14 +11,7 @@ type Dispatcher struct {
 }
 
 func (d *Dispatcher) handleCoap(data []byte) {
-	// TODO: Create this writer once.
-	w := slip.NewSlipMuxWriter(NewSlowWriter(d.serial.port))
-
-	err := w.WritePacket(slip.FRAME_COAP, data)
-	if err != nil {
-		logger.Println("handleCoap:", err)
-		return
-	}
+	d.serial.TX <- data
 }
 
 func (d *Dispatcher) handleSerial(data []byte) {
@@ -45,7 +38,7 @@ func (d *Dispatcher) Run() {
 		select {
 		case data := <-d.coap.RX:
 			d.handleCoap(data)
-		case data := <-d.serial.Chan:
+		case data := <-d.serial.RX:
 			d.handleSerial(data)
 		}
 	}
