@@ -173,7 +173,8 @@ pub const SlipMux = struct {
     };
 
     fn handleCoAP(self: *SlipMux, buf: []const u8) !void {
-        if (buf.len <= 3)
+        // 1 byte (frame type) + 4 byte (coap message) + 2 byte CRC
+        if (buf.len <= 7)
             return error.CoAPFrameTooShort;
         if (!crc.validCsum(buf))
             return error.InvalidChecksum;
