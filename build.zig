@@ -17,12 +17,19 @@ const std = @import("std");
 const Target = std.Target;
 const Zig = std.zig;
 const Builder = std.build.Builder;
+const FeatureSet = std.Target.Cpu.Feature.Set;
 
 pub fn build(b: *Builder) void {
+    // Workaround for https://github.com/ziglang/zig/issues/9760
+    var sub_set = FeatureSet.empty;
+    const float: std.Target.riscv.Feature = .d;
+    sub_set.addFeature(@enumToInt(float));
+
     const target = Zig.CrossTarget{
         .cpu_arch = Target.Cpu.Arch.riscv32,
         .os_tag = Target.Os.Tag.freestanding,
         .abi = Target.Abi.none,
+        .cpu_features_sub = sub_set,
     };
 
     const mode = b.standardReleaseOptions();
@@ -36,7 +43,7 @@ pub fn build(b: *Builder) void {
     exe.addCSourceFile("src/irq.S", &[_][]const u8{});
     exe.addCSourceFile("src/clock.c", &[_][]const u8{});
 
-    exe.addPackage(std.build.Pkg {
+    exe.addPackage(std.build.Pkg{
         .name = "zoap",
         .path = "./zoap/src/zoap.zig",
     });
