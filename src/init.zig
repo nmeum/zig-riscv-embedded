@@ -30,7 +30,7 @@ pub fn panic(msg: []const u8, error_return_trace: ?*StackTrace) noreturn {
     @setCold(true);
 
     // Write panic message, unbuffered to standard out
-    console.print("PANIC: {}\n", .{msg});
+    console.print("PANIC: {s}\n", .{msg});
 
     @breakpoint();
     while (true) {}

@@ -206,7 +206,7 @@ pub const SlipMux = struct {
             return;
 
         self.dispatchFrame(buf) catch |err| {
-            console.print("handleFrame failed: {}\n", .{@errorName(err)});
+            console.print("handleFrame failed: {s}\n", .{@errorName(err)});
         };
     }
 

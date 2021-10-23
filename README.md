@@ -32,7 +32,7 @@ subdirectory.
 For building the software and the associated Slipmux tooling, the
 following software is required:
 
-* Zig `0.7.1`
+* Zig `0.8.1`
 * [Go][golang web] for compiling the `./slipmux` tool
 * A CoAP client, e.g. `coap-client(1)` from [libcoap][libcoap github]
 * QEMU (`qemu-system-riscv32`) for emulating a HiFive1 (optional)
@@ -49,7 +49,7 @@ configuration is available in `build.zig`. To build the application run:
 
 	$ zig build
 
-This will create a freestanding RISC-V ELF binary `zig-cache/bin/main`.
+This will create a freestanding RISC-V ELF binary `zig-out/bin/main`.
 If the image should be booted on real hardware, building in the
 `ReleaseSmall` [build mode][zig build modes] may be desirable:
 
@@ -66,7 +66,7 @@ device and send CoAP messages to the device:
 In order to simulate a serial device, which can be used with the
 `./slipmux` tool, QEMU must be started as follows:
 
-	$ qemu-system-riscv32 -M sifive_e -nographic -kernel zig-cache/bin/main -serial pty
+	$ qemu-system-riscv32 -M sifive_e -nographic -kernel zig-out/bin/main -serial pty
 
 QEMU will print the allocated PTY path to standard output. In a separate
 terminal the `./slipmux` tool can then be started as follows:
@@ -102,7 +102,7 @@ To debug errors on real hardware start OpenOCD using `openocd -f
 openocd.cfg`. In a separate terminal start a gdb version with RISC-V
 support (e.g. [gdb-multiarch][gdb-multiarch alpine]) as follows:
 
-	$ gdb-multiarch -ex 'target extended-remote :3333' zig-cache/bin/main
+	$ gdb-multiarch -ex 'target extended-remote :3333' zig-out/bin/main
 
 ## Development
 

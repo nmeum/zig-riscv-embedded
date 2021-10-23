@@ -45,7 +45,7 @@ pub fn ledOff(req: *zoap.pkt.Request) void {
 pub fn coapHandler(req: *zoap.pkt.Request) void {
     console.print("[coap] Incoming request\n", .{});
     const ret = dispatcher.dispatch(req) catch |err| {
-        console.print("[coap] Dispatch failed: {}\n", .{@errorName(err)});
+        console.print("[coap] Dispatch failed: {s}\n", .{@errorName(err)});
         return;
     };
 
