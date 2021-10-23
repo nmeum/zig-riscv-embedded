@@ -8,10 +8,15 @@ import (
 	"go.bug.st/serial"
 )
 
+type Packet struct {
+	FrameType byte
+	Data      []byte
+}
+
 type SerialEndpoint struct {
 	port serial.Port
 
-	RX <-chan []byte
+	RX <-chan Packet
 	TX chan<- []byte
 }
 
@@ -28,7 +33,7 @@ func NewSerialEP(path string) (*SerialEndpoint, error) {
 		return nil, err
 	}
 
-	rx := make(chan []byte)
+	rx := make(chan Packet)
 	tx := make(chan []byte)
 
 	ep := &SerialEndpoint{
@@ -57,11 +62,11 @@ func (s *SerialEndpoint) sndLoop(ch <-chan []byte) {
 	}
 }
 
-func (s *SerialEndpoint) rcvLoop(ch chan<- []byte) {
-	reader := slip.NewReader(s.port)
+func (s *SerialEndpoint) rcvLoop(ch chan<- Packet) {
+	reader := slip.NewSlipMuxReader(s.port)
 
 	for {
-		packet, _, err := reader.ReadPacket()
+		packet, frame, err := reader.ReadPacket()
 
 		var perr *serial.PortError
 		if errors.As(err, &perr) && perr.Code() == serial.PortClosed {
@@ -72,7 +77,7 @@ func (s *SerialEndpoint) rcvLoop(ch chan<- []byte) {
 		}
 
 		packet = bytes.TrimPrefix(packet, []byte{0})
-		ch <- packet
+		ch <- Packet{frame, packet}
 	}
 }
 

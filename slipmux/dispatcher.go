@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/Lobaro/slip"
 	"os"
+
+	"github.com/Lobaro/slip"
 )
 
 type Dispatcher struct {
@@ -14,22 +15,17 @@ func (d *Dispatcher) handleCoap(data []byte) {
 	d.serial.TX <- data
 }
 
-func (d *Dispatcher) handleSerial(data []byte) {
-	if len(data) <= 2 {
-		return
-	}
-
-	frame := data[0]
-	switch frame {
+func (d *Dispatcher) handleSerial(pkt Packet) {
+	switch pkt.FrameType {
 	case slip.FRAME_DIAGNOSTIC:
-		msg := data[1:len(data)]
-
-		_, err := os.Stdout.WriteString(string(msg))
+		_, err := os.Stdout.WriteString(string(pkt.Data))
 		if err != nil {
 			logger.Println("handleSerial:", err)
 		}
+	case slip.FRAME_COAP:
+		d.coap.TX <- pkt.Data
 	default:
-		logger.Printf("handleSerial: Unsupported frame type: 0x%x\n", frame)
+		logger.Printf("handleSerial: Unsupported frame type: 0x%x\n", pkt.FrameType)
 	}
 }
 
@@ -38,8 +34,8 @@ func (d *Dispatcher) Run() {
 		select {
 		case data := <-d.coap.RX:
 			d.handleCoap(data)
-		case data := <-d.serial.RX:
-			d.handleSerial(data)
+		case pkt := <-d.serial.RX:
+			d.handleSerial(pkt)
 		}
 	}
 }
