@@ -20,16 +20,20 @@ const Builder = std.build.Builder;
 const FeatureSet = std.Target.Cpu.Feature.Set;
 
 pub fn build(b: *Builder) void {
-    // Workaround for https://github.com/ziglang/zig/issues/9760
-    var sub_set = FeatureSet.empty;
-    const float: std.Target.riscv.Feature = .d;
-    sub_set.addFeature(@enumToInt(float));
+    var fe310_cpu_feat = FeatureSet.empty;
+    const m: std.Target.riscv.Feature = .m;
+    const a: std.Target.riscv.Feature = .a;
+    const c: std.Target.riscv.Feature = .c;
+    fe310_cpu_feat.addFeature(@enumToInt(a));
+    fe310_cpu_feat.addFeature(@enumToInt(m));
+    fe310_cpu_feat.addFeature(@enumToInt(c));
 
     const target = Zig.CrossTarget{
         .cpu_arch = Target.Cpu.Arch.riscv32,
         .os_tag = Target.Os.Tag.freestanding,
         .abi = Target.Abi.none,
-        .cpu_features_sub = sub_set,
+        .cpu_features_sub = std.Target.riscv.cpu.baseline_rv32.features,
+        .cpu_features_add = fe310_cpu_feat,
     };
 
     const mode = b.standardReleaseOptions();
