@@ -13,6 +13,8 @@
 // You should have received a copy of the GNU General Public License along
 // with this program. If not, see <http://www.gnu.org/licenses/>.
 
+const console = @import("console.zig");
+
 // Type alias for IRQ values, largest possible IRQ on the FE310 is
 // 52 (see INTERRUPT_SOURCES below), thus representable by a u6.
 pub const Irq = u6;
@@ -78,8 +80,13 @@ pub const Plic = struct {
         const claim_reg = @intToPtr(*volatile u32, PLIC_CTRL_ADDR + PLIC_CONTEXT_OFF + @sizeOf(u32));
         const irq = @intCast(Irq, claim_reg.*);
 
-        if (irq_handlers[irq]) |handler|
+        if (irq_handlers[irq]) |handler| {
             handler(irq_contexts[irq]);
+            // const ptr: [*]?*c_void = &irq_contexts;
+            // handler((ptr + irq)[0]);
+            // const ptr = @ptrToInt(&irq_contexts[0]);
+            // handler(@intToPtr(?*c_void, ptr + (irq * @alignOf(*c_void))));
+        }
 
         // Mark interrupt as completed
         claim_reg.* = irq;

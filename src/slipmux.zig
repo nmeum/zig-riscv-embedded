@@ -25,8 +25,8 @@ const FrameHandler = fn (ctx: ?*c_void, buf: []const u8) void;
 const CoapHandler = fn (req: *zoap.pkt.Request) void;
 
 pub const Slip = struct {
-    uart: Uart,
-    plic: Plic,
+    uart: *const Uart,
+    plic: *const Plic,
     handler: ?FrameHandler = null,
     context: ?*c_void = null,
     rcvbuf: [MTU]u8 = undefined,
@@ -97,7 +97,7 @@ pub const Slip = struct {
     }
 
     fn irqHandler(ctx: ?*c_void) void {
-        var self: *Slip = @ptrCast(*Slip, @alignCast(@alignOf(Slip), ctx));
+        var self: *Slip = @ptrCast(*Slip, @alignCast(@alignOf(*Slip), ctx.?));
 
         const ip = self.uart.readIp();
         if (ip.rxwm) {
@@ -121,7 +121,7 @@ pub const Slip = struct {
 };
 
 pub const Frame = struct {
-    slip: Slip,
+    slip: *const Slip,
 
     const WriteError = error{};
     const FrameWriter = std.io.Writer(Frame, WriteError, write);
@@ -164,7 +164,7 @@ pub const Frame = struct {
 };
 
 pub const SlipMux = struct {
-    slip: Slip,
+    slip: *Slip,
     handler: ?CoapHandler = null,
 
     pub const FrameType = enum(u8) {
@@ -201,7 +201,7 @@ pub const SlipMux = struct {
     }
 
     fn handleFrame(ctx: ?*c_void, buf: []const u8) void {
-        var self: *SlipMux = @ptrCast(*SlipMux, @alignCast(@alignOf(SlipMux), ctx.?));
+        var self: *SlipMux = @ptrCast(*SlipMux, @alignCast(@alignOf(*SlipMux), ctx.?));
         if (buf.len == 0)
             return;
 

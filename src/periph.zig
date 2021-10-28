@@ -42,12 +42,12 @@ const uart0 = uart.Uart{
     .tx_pin = gpio.pin(0, 17),
     .irq = 3,
 };
-const slip0 = smux.Slip{
-    .uart = uart0,
-    .plic = plic0,
+var slip0 = smux.Slip{
+    .uart = &uart0,
+    .plic = &plic0,
 };
 pub var slipmux = smux.SlipMux{
-    .slip = slip0,
+    .slip = &slip0,
 };
 
 pub fn init() void {
