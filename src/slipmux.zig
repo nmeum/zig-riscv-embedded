@@ -128,21 +128,23 @@ pub const FrameType = enum(u8) {
 pub const Frame = struct {
     slip: *const Slip,
     ftype: FrameType,
+    csum: crc.Incremental,
 
     const WriteError = error{};
-    const FrameWriter = std.io.Writer(Frame, WriteError, write);
+    const FrameWriter = std.io.Writer(*Frame, WriteError, write);
 
     fn init(slip: *const Slip, ftype: FrameType) Frame {
-        const frame = Frame{
+        var frame = Frame{
             .slip = slip,
             .ftype = ftype,
+            .csum = .{},
         };
 
         frame.pushByte(@enumToInt(ftype));
         return frame;
     }
 
-    fn pushByte(self: Frame, byte: u8) void {
+    fn pushByteRaw(self: *Frame, byte: u8) void {
         const uart = self.slip.uart;
 
         // Busy wait for TX fifo to empty.
@@ -150,7 +152,13 @@ pub const Frame = struct {
         uart.writeByte(byte);
     }
 
-    fn write(self: Frame, data: []const u8) WriteError!usize {
+    fn pushByte(self: *Frame, byte: u8) void {
+        self.pushByteRaw(byte);
+        if (self.ftype == FrameType.coap)
+            self.csum.add(byte);
+    }
+
+    fn write(self: *Frame, data: []const u8) WriteError!usize {
         for (data) |c, _| {
             switch (c) {
                 Slip.END => {
@@ -170,11 +178,20 @@ pub const Frame = struct {
         return data.len;
     }
 
-    pub fn close(self: Frame) void {
+    pub fn close(self: *Frame) void {
+        if (self.ftype == FrameType.coap) {
+            var fcs16 = self.csum.csum();
+            fcs16 ^= 0xffff; // complement
+
+            // XXX: Use @truncate instead?
+            self.pushByteRaw(@intCast(u8, fcs16 & @as(u16, 0x00ff)));
+            self.pushByteRaw(@intCast(u8, fcs16 >> 8 & @as(u16, 0x00ff)));
+        }
+
         self.pushByte(Slip.END);
     }
 
-    pub fn writer(self: Frame) FrameWriter {
+    pub fn writer(self: *Frame) FrameWriter {
         return .{ .context = self };
     }
 };

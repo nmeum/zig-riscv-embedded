@@ -22,7 +22,7 @@ const resources = &[_]zoap.res.Resource{
     .{ .path = "on", .handler = ledOn },
     .{ .path = "off", .handler = ledOff },
 };
-const dispatcher = zoap.res.Dispatcher{
+var dispatcher = zoap.res.Dispatcher{
     .resources = resources,
 };
 
@@ -44,13 +44,16 @@ pub fn ledOff(req: *zoap.pkt.Request) void {
 
 pub fn coapHandler(req: *zoap.pkt.Request) void {
     console.print("[coap] Incoming request\n", .{});
-    const ret = dispatcher.dispatch(req) catch |err| {
+    var resp = dispatcher.dispatch(req) catch |err| {
         console.print("[coap] Dispatch failed: {s}\n", .{@errorName(err)});
         return;
     };
 
-    if (!ret)
-        console.print("[coap] Request to unknown resource\n", .{});
+    const ftype = slipmux.FrameType.coap;
+    var frame = periph.slipmux.newFrame(ftype);
+
+    try frame.writer().writeAll(resp.marshal());
+    frame.close();
 }
 
 pub fn main() !void {

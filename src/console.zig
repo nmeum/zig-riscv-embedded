@@ -23,7 +23,7 @@ pub fn getStdDbg() slipmux.Frame {
 
 // Write a Slipmux diagnostic message, unbuffered, to the UART.
 pub fn print(comptime fmt: []const u8, args: anytype) void {
-    const stddbg = getStdDbg();
+    var stddbg = getStdDbg();
     defer stddbg.close();
 
     const w = stddbg.writer();

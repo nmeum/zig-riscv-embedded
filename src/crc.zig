@@ -50,7 +50,7 @@ pub const Incremental = struct {
     }
 };
 
-fn calcCsum(data: []const u8) u16 {
+pub fn calcCsum(data: []const u8) u16 {
     var inc: Incremental = .{};
     for (data) |b, _|
         inc.add(b);
