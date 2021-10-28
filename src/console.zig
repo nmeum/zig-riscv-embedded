@@ -17,7 +17,7 @@ const periph = @import("periph.zig");
 const slipmux = @import("slipmux.zig");
 
 pub fn getStdDbg() slipmux.Frame {
-    const ftype = slipmux.SlipMux.FrameType.diagnostic;
+    const ftype = slipmux.FrameType.diagnostic;
     return periph.slipmux.newFrame(ftype);
 }
 

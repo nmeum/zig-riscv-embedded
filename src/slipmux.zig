@@ -120,11 +120,27 @@ pub const Slip = struct {
     }
 };
 
+pub const FrameType = enum(u8) {
+    diagnostic = 0x0a,
+    coap = 0xa9,
+};
+
 pub const Frame = struct {
     slip: *const Slip,
+    ftype: FrameType,
 
     const WriteError = error{};
     const FrameWriter = std.io.Writer(Frame, WriteError, write);
+
+    fn init(slip: *const Slip, ftype: FrameType) Frame {
+        const frame = Frame{
+            .slip = slip,
+            .ftype = ftype,
+        };
+
+        frame.pushByte(@enumToInt(ftype));
+        return frame;
+    }
 
     fn pushByte(self: Frame, byte: u8) void {
         const uart = self.slip.uart;
@@ -167,11 +183,6 @@ pub const SlipMux = struct {
     slip: *Slip,
     handler: ?CoapHandler = null,
 
-    pub const FrameType = enum(u8) {
-        diagnostic = 0x0a,
-        coap = 0xa9,
-    };
-
     fn handleCoAP(self: *SlipMux, buf: []const u8) !void {
         // 1 byte (frame type) + 4 byte (coap message) + 2 byte CRC
         if (buf.len <= 7)
@@ -211,9 +222,7 @@ pub const SlipMux = struct {
     }
 
     pub fn newFrame(self: *SlipMux, ftype: FrameType) Frame {
-        const frame = Frame{ .slip = self.slip };
-        frame.pushByte(@enumToInt(ftype));
-        return frame;
+        return Frame.init(self.slip, ftype);
     }
 
     pub fn registerHandler(self: *SlipMux, handler: CoapHandler) !void {
