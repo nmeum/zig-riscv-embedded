@@ -38,13 +38,24 @@ const fcstab = [256]u16{
     0x7bc7, 0x6a4e, 0x58d5, 0x495c, 0x3de3, 0x2c6a, 0x1ef1, 0x0f78,
 };
 
-fn calcCsum(data: []const u8) u16 {
-    var initByte: u16 = FCS_INIT;
-    for (data) |b, _| {
-        initByte = (initByte >> 8) ^ fcstab[(initByte ^ @as(u16, b)) & 0xff];
+pub const Incremental = struct {
+    fcs: u16 = FCS_INIT,
+
+    pub fn add(self: *Incremental, data: u8) void {
+        self.fcs = (self.fcs >> 8) ^ fcstab[(self.fcs ^ @as(u16, data)) & 0xff];
     }
 
-    return initByte;
+    pub fn csum(self: *const Incremental) u16 {
+        return self.fcs;
+    }
+};
+
+fn calcCsum(data: []const u8) u16 {
+    var inc: Incremental = .{};
+    for (data) |b, _|
+        inc.add(b);
+
+    return inc.csum();
 }
 
 pub fn validCsum(data: []const u8) bool {
