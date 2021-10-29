@@ -188,7 +188,7 @@ pub const Frame = struct {
             self.pushByteRaw(@intCast(u8, fcs16 >> 8 & @as(u16, 0x00ff)));
         }
 
-        self.pushByte(Slip.END);
+        self.pushByteRaw(Slip.END);
     }
 
     pub fn writer(self: *Frame) FrameWriter {
