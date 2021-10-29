@@ -38,7 +38,7 @@ pub const Gpio = struct {
     };
 
     fn readWord(self: Gpio, reg: Reg) u32 {
-        const ptr = @intToPtr(*u32, self.base_addr + @enumToInt(reg));
+        const ptr = @intToPtr(*volatile u32, self.base_addr + @enumToInt(reg));
         return ptr.*;
     }
 
