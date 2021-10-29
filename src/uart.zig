@@ -26,6 +26,10 @@ pub const ConfFlags = struct {
     baud: u32 = 115200,
 };
 
+fn ctrlCount(watermark: u3) u32 {
+    return (@as(u32, watermark) & 0x07) << 16;
+}
+
 pub const Uart = struct {
     base_addr: usize,
     rx_pin: gpio.Pin,
@@ -42,28 +46,17 @@ pub const Uart = struct {
         div = 0x18,
     };
 
-    pub const FIFO_DEPTH: usize = 8;
-
-    pub const txctrl = packed struct {
-        txen: bool,
-        nstop: u1,
-        _: u14 = undefined, // reserved
-        txcnt: u3,
-        __: u13 = undefined, // reserved
-    };
-
-    pub const rxctrl = packed struct {
-        rxen: bool,
-        _: u15 = undefined, // reserved
-        rxcnt: u3,
-        __: u13 = undefined, // reserved
-    };
-
-    pub const ie = packed struct {
+    pub const ie = struct {
         txwm: bool,
         rxwm: bool,
-        _: u30 = undefined, // reserved
     };
+
+    pub const FIFO_DEPTH: usize = 8;
+    pub const TXCTRL_ENABLE: u32 = 1;
+    pub const RXCTRL_ENABLE: u32 = 1;
+    pub const EMPTY_MASK: u32 = 1 << 31; // for txdata/rxdata
+    pub const IE_TXWM: u32 = 1 << 0;
+    pub const IE_RXWM: u32 = 1 << 1;
 
     fn writeWord(self: Uart, reg: Reg, value: u32) void {
         const ptr = @intToPtr(*volatile u32, self.base_addr + @enumToInt(reg));
@@ -75,24 +68,30 @@ pub const Uart = struct {
         return ptr.*;
     }
 
-    pub fn writeTxctrl(self: Uart, ctrl: txctrl) void {
-        var serialized = @bitCast(u32, ctrl);
-        self.writeWord(Reg.txctrl, serialized);
+    pub fn confTx(self: Uart, watermark: u3) void {
+        self.writeWord(Reg.txctrl, TXCTRL_ENABLE | ctrlCount(watermark));
     }
 
-    pub fn writeRxctrl(self: Uart, ctrl: rxctrl) void {
-        var serialized = @bitCast(u32, ctrl);
-        self.writeWord(Reg.rxctrl, serialized);
+    pub fn confRx(self: Uart, watermark: u3) void {
+        self.writeWord(Reg.rxctrl, RXCTRL_ENABLE | ctrlCount(watermark));
     }
 
     pub fn readIp(self: Uart) ie {
-        const ip = self.readWord(Reg.ip);
-        return @bitCast(ie, ip);
+        const r = self.readWord(Reg.ip);
+        return .{
+            .txwm = (r & IE_TXWM) != 0,
+            .rxwm = (r & IE_RXWM) != 0,
+        };
     }
 
-    pub fn writeIe(self: Uart, val: ie) void {
-        var serialized = @bitCast(u32, val);
-        self.writeWord(Reg.ie, serialized);
+    pub fn writeIe(self: Uart, txwm: bool, rxwm: bool) void {
+        var r: u32 = 0;
+        if (txwm)
+            r |= IE_TXWM;
+        if (rxwm)
+            r |= IE_RXWM;
+
+        self.writeWord(Reg.ie, r);
     }
 
     pub fn writeByte(self: Uart, value: u8) void {
@@ -105,36 +104,25 @@ pub const Uart = struct {
     }
 
     pub fn readByte(self: Uart) ?u8 {
-        // TODO: use a packed struct for the rxdata register, with
-        // Zig 0.6 doing so unfourtunatly triggers a compiler bug.
         const rxdata = self.readWord(Reg.rxfifo);
-
-        if ((rxdata & (1 << 31)) != 0)
+        if ((rxdata & EMPTY_MASK) != 0)
             return null;
         return @truncate(u8, rxdata);
     }
 
     pub fn isTxFull(self: Uart) bool {
-        // TODO: use a packed struct for the txdata register, with
-        // Zig 0.6 doing so unfourtunatly triggers a compiler bug.
         const txdata = self.readWord(Reg.txfifo);
-        return (txdata & (1 << 31)) != 0;
+        return (txdata & EMPTY_MASK) != 0;
     }
 
     pub fn init(self: Uart, ugpio: gpio.Gpio, conf: ConfFlags) void {
         // Enable the UART at the given baud rate
         self.writeWord(Reg.div, CLK_FREQ / conf.baud);
 
-        self.writeTxctrl(txctrl{
-            .txen = conf.tx,
-            .nstop = 0,
-            .txcnt = conf.cnt,
-        });
-
-        self.writeRxctrl(rxctrl{
-            .rxen = conf.rx,
-            .rxcnt = conf.cnt,
-        });
+        if (conf.tx)
+            self.confTx(conf.cnt);
+        if (conf.rx)
+            self.confRx(conf.cnt);
 
         if (conf.tx)
             ugpio.setIOFCtrl(self.tx_pin, 0);

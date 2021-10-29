@@ -108,10 +108,8 @@ pub const Slip = struct {
     }
 
     pub fn registerHandler(self: *Slip, func: FrameHandler, ctx: ?*c_void) !void {
-        self.uart.writeIe(Uart.ie{
-            .txwm = false,
-            .rxwm = true,
-        });
+        // Enable RX interrupt, dissable TX interrupt.
+        self.uart.writeIe(false, true);
 
         self.handler = func;
         self.context = ctx;
