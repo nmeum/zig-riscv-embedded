@@ -80,13 +80,8 @@ pub const Plic = struct {
         const claim_reg = @intToPtr(*volatile u32, PLIC_CTRL_ADDR + PLIC_CONTEXT_OFF + @sizeOf(u32));
         const irq = @intCast(Irq, claim_reg.*);
 
-        if (irq_handlers[irq]) |handler| {
+        if (irq_handlers[irq]) |handler|
             handler(irq_contexts[irq]);
-            // const ptr: [*]?*c_void = &irq_contexts;
-            // handler((ptr + irq)[0]);
-            // const ptr = @ptrToInt(&irq_contexts[0]);
-            // handler(@intToPtr(?*c_void, ptr + (irq * @alignOf(*c_void))));
-        }
 
         // Mark interrupt as completed
         claim_reg.* = irq;
