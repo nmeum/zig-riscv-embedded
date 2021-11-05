@@ -6,7 +6,7 @@
 
 set -e
 
-ELF_FILE=./zig-cache/bin/main
+ELF_FILE=./zig-out/bin/main
 export GDB_PORT=3333
 
 openocd -f openocd.cfg &
