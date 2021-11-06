@@ -116,7 +116,7 @@ provided in `.githooks`. It can be activated using:
 The application uses slightly modified linker scripts and assembler
 startup code copied from the [RIOT][riot fe310] operating system. Unless
 otherwise noted code written by myself is licensed under
-`GPL-3.0-or-later`. Refer to the license headers of the different files
+`AGPL-3.0-or-later`. Refer to the license headers of the different files
 for more information.
 
 [zig website]: https://ziglang.org/
