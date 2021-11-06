@@ -1,6 +1,6 @@
 # zig-riscv-embedded
 
-Toy project using [Zig][zig website] on the [HiFive1][hifive1 website] RISC-V board.
+Experimental [Zig][zig website]-based [CoAP][rfc7252] node for the [HiFive1][hifive1 website] RISC-V board.
 
 ![World's first IoT-enabled Zig-based constrained node](https://gist.github.com/nmeum/9c921cac9e28e722a8415af3ff213e8c/raw/b936f1f05d5eda07a91a87efdaf5cb1552795ad1/output-2fps-960px.gif)
 
