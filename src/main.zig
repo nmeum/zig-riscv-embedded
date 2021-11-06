@@ -17,6 +17,7 @@ const console = @import("console.zig");
 const slipmux = @import("slipmux.zig");
 const periph = @import("periph.zig");
 const zoap = @import("zoap");
+const codes = zoap.codes;
 
 const resources = &[_]zoap.Resource{
     .{ .path = "on", .handler = ledOn },
@@ -26,20 +27,24 @@ var dispatcher = zoap.Dispatcher{
     .resources = resources,
 };
 
-pub fn ledOn(req: *zoap.Request) void {
-    if (!req.header.code.equal(zoap.codes.PUT))
-        return;
+pub fn ledOn(resp: *zoap.Response, req: *zoap.Request) codes.Code {
+    if (!req.header.code.equal(codes.PUT))
+        return codes.BAD_REQ;
 
     console.print("[coap] Turning LED on\n", .{});
     periph.gpio0.set(periph.led0, 0);
+
+    return codes.CREATED;
 }
 
-pub fn ledOff(req: *zoap.Request) void {
-    if (!req.header.code.equal(zoap.codes.PUT))
-        return;
+pub fn ledOff(resp: *zoap.Response, req: *zoap.Request) codes.Code {
+    if (!req.header.code.equal(codes.PUT))
+        return codes.BAD_REQ;
 
     console.print("[coap] Turning LED off\n", .{});
     periph.gpio0.set(periph.led0, 1);
+
+    return codes.CREATED;
 }
 
 pub fn coapHandler(req: *zoap.Request) void {
