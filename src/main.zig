@@ -18,15 +18,15 @@ const slipmux = @import("slipmux.zig");
 const periph = @import("periph.zig");
 const zoap = @import("zoap");
 
-const resources = &[_]zoap.res.Resource{
+const resources = &[_]zoap.Resource{
     .{ .path = "on", .handler = ledOn },
     .{ .path = "off", .handler = ledOff },
 };
-var dispatcher = zoap.res.Dispatcher{
+var dispatcher = zoap.Dispatcher{
     .resources = resources,
 };
 
-pub fn ledOn(req: *zoap.pkt.Request) void {
+pub fn ledOn(req: *zoap.Request) void {
     if (!req.header.code.equal(zoap.codes.PUT))
         return;
 
@@ -34,7 +34,7 @@ pub fn ledOn(req: *zoap.pkt.Request) void {
     periph.gpio0.set(periph.led0, 0);
 }
 
-pub fn ledOff(req: *zoap.pkt.Request) void {
+pub fn ledOff(req: *zoap.Request) void {
     if (!req.header.code.equal(zoap.codes.PUT))
         return;
 
@@ -42,7 +42,7 @@ pub fn ledOff(req: *zoap.pkt.Request) void {
     periph.gpio0.set(periph.led0, 1);
 }
 
-pub fn coapHandler(req: *zoap.pkt.Request) void {
+pub fn coapHandler(req: *zoap.Request) void {
     console.print("[coap] Incoming request\n", .{});
     var resp = dispatcher.dispatch(req) catch |err| {
         console.print("[coap] Dispatch failed: {s}\n", .{@errorName(err)});
