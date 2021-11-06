@@ -20,12 +20,28 @@ const zoap = @import("zoap");
 const codes = zoap.codes;
 
 const resources = &[_]zoap.Resource{
+    .{ .path = "about", .handler = about },
     .{ .path = "on", .handler = ledOn },
     .{ .path = "off", .handler = ledOff },
 };
 var dispatcher = zoap.Dispatcher{
     .resources = resources,
 };
+
+pub fn about(resp: *zoap.Response, req: *zoap.Request) codes.Code {
+    if (!req.header.code.equal(codes.GET))
+        return codes.BAD_REQ;
+
+    console.print("[coap] Received /about request\n", .{});
+
+    const w = resp.payloadWriter();
+    w.writeAll("zig-riscv-embedded licensed under AGPL3+") catch |err| {
+        console.print("[coap] error in /about: {s}\n", .{@errorName(err)});
+        return codes.INTERNAL_ERR;
+    };
+
+    return codes.CONTENT;
+}
 
 pub fn ledOn(resp: *zoap.Response, req: *zoap.Request) codes.Code {
     if (!req.header.code.equal(codes.PUT))
