@@ -1,0 +1,12 @@
+* Add abstraction for PRCI
+* Rewrite src/clock.c in Zig
+* Make LED handler read payload to determine desired LED status
+* Allow setting all three LEDs
+	* Will likely require some sort of subdispatcher code in zoap
+	* That is, a subdispatcher for /led
+* Debug occasional "bad checksum" Slipmux errors
+* Buffer incoming UART data in a linear FIFO
+	* To reduce time spend in interrupt handler
+* Use RISC-V atomic instructions for MMIO
+	* For example, atomic_or etc. (see RIOT code)
+	* To-Do: Figure out how Zig abstracts these instructions
