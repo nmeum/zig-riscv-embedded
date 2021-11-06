@@ -2,7 +2,7 @@
 
 Toy project using [Zig][zig website] on the [HiFive1][hifive1 website] RISC-V board.
 
-![World's first IoT-enabled Zig-based constrained node](https://gist.github.com/nmeum/9c921cac9e28e722a8415af3ff213e8c/raw/e7de3e3c87ba32fb783d782a4dbc701069439b3d/output-3fps-960px.gif)
+![World's first IoT-enabled Zig-based constrained node](https://gist.github.com/nmeum/9c921cac9e28e722a8415af3ff213e8c/raw/b936f1f05d5eda07a91a87efdaf5cb1552795ad1/output-2fps-960px.gif)
 
 ## Status
 
