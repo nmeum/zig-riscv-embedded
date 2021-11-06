@@ -30,7 +30,7 @@ var dispatcher = zoap.Dispatcher{
 
 pub fn about(resp: *zoap.Response, req: *zoap.Request) codes.Code {
     if (!req.header.code.equal(codes.GET))
-        return codes.BAD_REQ;
+        return codes.BAD_METHOD;
 
     console.print("[coap] Received /about request\n", .{});
 
@@ -45,7 +45,7 @@ pub fn about(resp: *zoap.Response, req: *zoap.Request) codes.Code {
 
 pub fn ledOn(resp: *zoap.Response, req: *zoap.Request) codes.Code {
     if (!req.header.code.equal(codes.PUT))
-        return codes.BAD_REQ;
+        return codes.BAD_METHOD;
 
     console.print("[coap] Turning LED on\n", .{});
     periph.gpio0.set(periph.led0, 0);
@@ -55,7 +55,7 @@ pub fn ledOn(resp: *zoap.Response, req: *zoap.Request) codes.Code {
 
 pub fn ledOff(resp: *zoap.Response, req: *zoap.Request) codes.Code {
     if (!req.header.code.equal(codes.PUT))
-        return codes.BAD_REQ;
+        return codes.BAD_METHOD;
 
     console.print("[coap] Turning LED off\n", .{});
     periph.gpio0.set(periph.led0, 1);
