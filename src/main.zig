@@ -50,7 +50,7 @@ pub fn ledOn(resp: *zoap.Response, req: *zoap.Request) codes.Code {
     console.print("[coap] Turning LED on\n", .{});
     periph.gpio0.set(periph.led0, 0);
 
-    return codes.CREATED;
+    return codes.CHANGED;
 }
 
 pub fn ledOff(resp: *zoap.Response, req: *zoap.Request) codes.Code {
@@ -60,7 +60,7 @@ pub fn ledOff(resp: *zoap.Response, req: *zoap.Request) codes.Code {
     console.print("[coap] Turning LED off\n", .{});
     periph.gpio0.set(periph.led0, 1);
 
-    return codes.CREATED;
+    return codes.CHANGED;
 }
 
 pub fn coapHandler(req: *zoap.Request) void {
