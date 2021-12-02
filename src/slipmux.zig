@@ -87,12 +87,8 @@ pub const Slip = struct {
 
     fn rxIrqHandler(self: *Slip) !void {
         var n: usize = 0;
-        while (true) {
-            if (self.uart.readByte()) |byte| {
-                try self.handleByte(byte);
-            } else {
-                break;
-            }
+        while (self.uart.readByte()) |byte| {
+            try self.handleByte(byte);
         }
     }
 
