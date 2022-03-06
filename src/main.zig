@@ -44,6 +44,8 @@ pub fn about(resp: *zoap.Response, req: *zoap.Request) codes.Code {
 }
 
 pub fn ledOn(resp: *zoap.Response, req: *zoap.Request) codes.Code {
+    _ = resp; // Don't change response abort from code
+
     if (!req.header.code.equal(codes.PUT))
         return codes.BAD_METHOD;
 
@@ -54,6 +56,8 @@ pub fn ledOn(resp: *zoap.Response, req: *zoap.Request) codes.Code {
 }
 
 pub fn ledOff(resp: *zoap.Response, req: *zoap.Request) codes.Code {
+    _ = resp; // Don't change response abort from code
+
     if (!req.header.code.equal(codes.PUT))
         return codes.BAD_METHOD;
 
