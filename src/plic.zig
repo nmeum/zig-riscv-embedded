@@ -20,7 +20,7 @@ const console = @import("console.zig");
 pub const Irq = u6;
 
 // Type alias for PLIC interrupt handler functions.
-pub const Handler = fn (args: ?*c_void) void;
+pub const Handler = fn (args: ?*anyopaque) void;
 
 pub const Plic = struct {
     base_addr: usize,
@@ -34,9 +34,9 @@ pub const Plic = struct {
     // Amount of interrupt sources supported by plic.
     const INTERRUPT_SOURCES: Irq = 52;
 
-    // TODO: Get rid of c_void in the long run.
+    // TODO: Get rid of anyopaque in the long run.
     var irq_handlers = [_]?Handler{null} ** INTERRUPT_SOURCES;
-    var irq_contexts = [_]?*c_void{null} ** INTERRUPT_SOURCES;
+    var irq_contexts = [_]?*anyopaque{null} ** INTERRUPT_SOURCES;
 
     pub fn setThreshold(self: Plic, threshold: u3) void {
         const plic_thres = @intToPtr(*volatile u32, self.base_addr + PLIC_CONTEXT_OFF);
@@ -64,7 +64,7 @@ pub const Plic = struct {
         }
     }
 
-    pub fn registerHandler(self: Plic, irq: Irq, func: Handler, ctx: ?*c_void) !void {
+    pub fn registerHandler(self: Plic, irq: Irq, func: Handler, ctx: ?*anyopaque) !void {
         if (irq >= irq_handlers.len)
             return error.OutOfBounds;
 

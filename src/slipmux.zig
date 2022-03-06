@@ -21,14 +21,14 @@ const console = @import("console.zig");
 const Plic = @import("plic.zig").Plic;
 const Uart = @import("uart.zig").Uart;
 
-const FrameHandler = fn (ctx: ?*c_void, buf: []const u8) void;
+const FrameHandler = fn (ctx: ?*anyopaque, buf: []const u8) void;
 const CoapHandler = fn (req: *zoap.Request) void;
 
 pub const Slip = struct {
     uart: *const Uart,
     plic: *const Plic,
     handler: ?FrameHandler = null,
-    context: ?*c_void = null,
+    context: ?*anyopaque = null,
     rcvbuf: [MTU]u8 = undefined,
     rcvpos: usize = 0,
     prev_esc: bool = false,
@@ -91,7 +91,7 @@ pub const Slip = struct {
         }
     }
 
-    fn irqHandler(ctx: ?*c_void) void {
+    fn irqHandler(ctx: ?*anyopaque) void {
         var self: *Slip = @ptrCast(*Slip, @alignCast(@alignOf(*Slip), ctx.?));
 
         const ip = self.uart.readIp();
@@ -102,7 +102,7 @@ pub const Slip = struct {
         }
     }
 
-    pub fn registerHandler(self: *Slip, func: FrameHandler, ctx: ?*c_void) !void {
+    pub fn registerHandler(self: *Slip, func: FrameHandler, ctx: ?*anyopaque) !void {
         // Enable RX interrupt, dissable TX interrupt.
         self.uart.writeIe(false, true);
 
@@ -221,7 +221,7 @@ pub const SlipMux = struct {
         }
     }
 
-    fn handleFrame(ctx: ?*c_void, buf: []const u8) void {
+    fn handleFrame(ctx: ?*anyopaque, buf: []const u8) void {
         var self: *SlipMux = @ptrCast(*SlipMux, @alignCast(@alignOf(*SlipMux), ctx.?));
         if (buf.len == 0)
             return;
