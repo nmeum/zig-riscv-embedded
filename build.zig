@@ -16,6 +16,7 @@
 const std = @import("std");
 const Target = std.Target;
 const Zig = std.zig;
+const FileSource = std.build.FileSource;
 const Builder = std.build.Builder;
 const FeatureSet = std.Target.Cpu.Feature.Set;
 
@@ -39,7 +40,7 @@ pub fn build(b: *Builder) void {
     const mode = b.standardReleaseOptions();
 
     const exe = b.addExecutable("main", "src/init.zig");
-    exe.linker_script = "fe310_g000.ld";
+    exe.setLinkerScriptPath(FileSource{ .path = "fe310_g000.ld" });
     exe.setTarget(target);
     exe.setBuildMode(mode);
 
@@ -49,7 +50,7 @@ pub fn build(b: *Builder) void {
 
     exe.addPackage(std.build.Pkg{
         .name = "zoap",
-        .path = "./zoap/src/zoap.zig",
+        .path = FileSource{ .path = "./zoap/src/zoap.zig" },
     });
 
     b.default_step.dependOn(&exe.step);

@@ -34,7 +34,7 @@ subdirectory.
 For building the software and the associated Slipmux tooling, the
 following software is required:
 
-* Zig `0.8.1`
+* Zig `0.9.1`
 * [Go][golang web] for compiling the `./slipmux` tool
 * A CoAP client, e.g. `coap-client(1)` from [libcoap][libcoap github]
 * QEMU (`qemu-system-riscv32`) for emulating a HiFive1 (optional)

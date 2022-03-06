@@ -26,6 +26,8 @@ const MCAUSE_INT = 0x80000000;
 const EXP_BREAKPOINT = 3;
 
 pub fn panic(msg: []const u8, error_return_trace: ?*StackTrace) noreturn {
+    _ = error_return_trace; // unused
+
     // Copied from the default_panic implementation
     @setCold(true);
 
