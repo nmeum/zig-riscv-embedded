@@ -26,7 +26,6 @@ pub const Plic = struct {
     base_addr: usize,
 
     // Offsets for memory mapped PLIC control registers.
-    const PLIC_CTRL_ADDR: usize = 0x0C000000;
     const PLIC_PRIO_OFF: usize = 0x0000;
     const PLIC_PENDING_OFF: usize = 0x1000;
     const PLIC_ENABLE_OFF: usize = 0x2000;
@@ -40,13 +39,13 @@ pub const Plic = struct {
     var irq_contexts = [_]?*c_void{null} ** INTERRUPT_SOURCES;
 
     pub fn setThreshold(self: Plic, threshold: u3) void {
-        const plic_thres = @intToPtr(*volatile u32, PLIC_CTRL_ADDR + PLIC_CONTEXT_OFF);
+        const plic_thres = @intToPtr(*volatile u32, self.base_addr + PLIC_CONTEXT_OFF);
         plic_thres.* = threshold;
     }
 
     fn setPriority(self: Plic, irq: Irq, prio: u3) void {
         // Set PLIC priority for IRQ
-        const plic_prio = @intToPtr(*volatile u32, PLIC_CTRL_ADDR +
+        const plic_prio = @intToPtr(*volatile u32, self.base_addr +
             PLIC_PRIO_OFF + (@as(u32, irq) * @sizeOf(u32)));
         plic_prio.* = @as(u32, prio);
     }
@@ -54,7 +53,7 @@ pub const Plic = struct {
     fn setEnable(self: Plic, irq: Irq, enable: bool) void {
         const idx = irq / 32;
 
-        const enable_addr: usize = PLIC_CTRL_ADDR + PLIC_ENABLE_OFF;
+        const enable_addr: usize = self.base_addr + PLIC_ENABLE_OFF;
         const plic_enable = @intToPtr(*volatile u32, enable_addr + (idx * @sizeOf(u32)));
 
         const off = @intCast(u5, irq % 32);
@@ -77,7 +76,7 @@ pub const Plic = struct {
     }
 
     pub fn invokeHandler(self: Plic) void {
-        const claim_reg = @intToPtr(*volatile u32, PLIC_CTRL_ADDR + PLIC_CONTEXT_OFF + @sizeOf(u32));
+        const claim_reg = @intToPtr(*volatile u32, self.base_addr + PLIC_CONTEXT_OFF + @sizeOf(u32));
         const irq = @intCast(Irq, claim_reg.*);
 
         if (irq_handlers[irq]) |handler|
