@@ -152,7 +152,7 @@ pub const Frame = struct {
     }
 
     fn write(self: *Frame, data: []const u8) WriteError!usize {
-        for (data) |c, _| {
+        for (data) |c| {
             switch (c) {
                 Slip.END => {
                     self.pushByte(Slip.ESC);
